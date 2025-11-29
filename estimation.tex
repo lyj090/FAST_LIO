@@ -1,0 +1,18 @@
+
+\section{Estimation Algorithms}
+\subsection{Unscented Kalman Filter (UKF)}
+The UKF approximates the posterior distribution using sigma points. Key steps include:
+\begin{algorithm}[H]
+\caption{UKF Prediction and Update}
+\begin{algorithmic}[1]
+\State Compute sigma points $\chi_k$ from $\hat{\mathbf{x}}_{k|k}, \mathbf{P}_{k|k}$
+\State Propagate through $f(\cdot)$: $\chi_{k+1|k} = f(\chi_k)$
+\State Compute predicted mean $\hat{\mathbf{x}}_{k+1|k}$ and covariance $\mathbf{P}_{k+1|k}$
+\State Generate measurement sigma points: $\gamma_k = h(\chi_{k+1|k})$
+\State Compute predicted measurement $\hat{\mathbf{z}}_{k+1|k}$
+\State Update state using Kalman gain $\mathbf{K}_{k+1}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Extended Kalman Filter (EKF)}
+For comparison, we implement the EKF using Jacobian linearization of $f(\cdot)$ and $h(\cdot)$.

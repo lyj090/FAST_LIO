@@ -1,0 +1,133 @@
+\section{Problem Definition and System Modeling}
+\label{sec:modeling}
+
+This section provides a formal description of the LiDAR-inertial system, including the state vector, inputs, observations, noise characteristics, and the discrete-time state-space model used for estimation.
+
+\subsection{System Description}
+\label{subsec:system_description}
+
+The task is real-time 6-DoF pose estimation of a mobile robot (e.g., UAV or ground vehicle) using a tightly coupled LiDAR-IMU sensor suite. The system components are defined as follows:
+
+\begin{itemize}
+    \item \textbf{State vector $\mathbf{x}_k$}: The full state of the IMU in the global frame $G$ includes:
+    \begin{itemize}
+        \item Position $\mathbf{p}^G_I \in \mathbb{R}^3$ and orientation $\mathbf{R}^G_I \in SO(3)$;
+        \item Velocity $\mathbf{v}^G_I \in \mathbb{R}^3$;
+        \item IMU bias terms: gyroscope bias $\mathbf{b}_\omega \in \mathbb{R}^3$, accelerometer bias $\mathbf{b}_a \in \mathbb{R}^3$;
+        \item Gravity vector $\mathbf{g}^G \in \mathbb{R}^3$ (estimated online for robustness in non-level environments).
+    \end{itemize}
+    The total state dimension is 18:
+    \begin{equation}
+        \mathbf{x} = \left[ \mathbf{R}^G_I, \mathbf{p}^G_I, \mathbf{v}^G_I, \mathbf{b}_\omega, \mathbf{b}_a, \mathbf{g}^G \right]^\top.
+    \end{equation}
+
+    \item \textbf{Input $\mathbf{u}_k$}: Raw IMU measurements at time $k$:
+    \begin{itemize}
+        \item Angular velocity: $\boldsymbol{\omega}^m_I = \boldsymbol{\omega}_I + \mathbf{b}_\omega + \mathbf{n}_\omega$;
+        \item Specific force: $\mathbf{a}^m_I = \mathbf{a}_I + \mathbf{b}_a + \mathbf{n}_a$,
+    \end{itemize}
+    where $\mathbf{n}_\omega$ and $\mathbf{n}_a$ are zero-mean Gaussian white noises.
+
+    \item \textbf{Observation $\mathbf{z}_k$}: A set of geometric feature points (planes or edges) extracted from a LiDAR scan. Each point $j$ is initially expressed in its local scan frame $L_j$.
+
+    \item \textbf{Sources of uncertainty}:
+    \begin{itemize}
+        \item \textit{Process noise}: IMU measurement noise ($\mathbf{n}_\omega, \mathbf{n}_a$) and random-walk bias drift ($\mathbf{n}_{b\omega}, \mathbf{n}_{ba}$);
+        \item \textit{Measurement noise}: Geometric noise $\mathbf{n}_{f_j}$ in LiDAR point positions;
+        \item \textit{Modeling errors}: Unmodeled dynamics, calibration inaccuracies, and feature extraction errors.
+    \end{itemize}
+\end{itemize}
+
+\subsection{State-Space Model}
+\label{subsec:state_space_model}
+
+The system is modeled as a continuous-discrete hybrid dynamical system.
+
+\subsubsection{Continuous-Time Dynamics}
+
+The IMU kinematics in the global frame $G$ are governed by:
+\begin{align}
+    \dot{\mathbf{p}}^G_I &= \mathbf{v}^G_I, \label{eq:cont_p} \\
+    \dot{\mathbf{v}}^G_I &= \mathbf{R}^G_I (\mathbf{a}^m_I - \mathbf{b}_a - \mathbf{n}_a) + \mathbf{g}^G, \label{eq:cont_v} \\
+    \dot{\mathbf{R}}^G_I &= \mathbf{R}^G_I (\boldsymbol{\omega}^m_I - \mathbf{b}_\omega - \mathbf{n}_\omega)^\wedge, \label{eq:cont_R} \\
+    \dot{\mathbf{b}}_\omega &= \mathbf{n}_{b\omega}, \quad
+    \dot{\mathbf{b}}_a = \mathbf{n}_{ba}, \quad
+    \dot{\mathbf{g}}^G = \mathbf{0}, \label{eq:cont_bias}
+\end{align}
+where $(\cdot)^\wedge$ denotes the skew-symmetric operator that maps a vector to its cross-product matrix.
+
+\subsubsection{Discrete-Time State Equation}
+
+Using first-order Euler integration with step size $\Delta t$, the continuous model is discretized as:
+\begin{equation}
+    \mathbf{x}_{i+1} = f(\mathbf{x}_i, \mathbf{u}_i) + \mathbf{w}_i,
+    \label{eq:discrete_state}
+\end{equation}
+where $\mathbf{w}_i = [\mathbf{n}_\omega, \mathbf{n}_a, \mathbf{n}_{b\omega}, \mathbf{n}_{ba}]^\top$ is the process noise, and the nonlinear function $f$ is defined by:
+
+\begin{enumerate}
+    \item Position: $\mathbf{p}_{i+1} = \mathbf{p}_i + \mathbf{v}_i \Delta t$;
+    \item Velocity: $\mathbf{v}_{i+1} = \mathbf{v}_i + \left[ \mathbf{R}_i (\mathbf{a}^m_i - \mathbf{b}_{a,i}) + \mathbf{g} \right] \Delta t$;
+    \item Orientation: $\mathbf{R}_{i+1} = \mathbf{R}_i \cdot \mathrm{Exp}\left( (\boldsymbol{\omega}^m_i - \mathbf{b}_{\omega,i}) \Delta t \right)$,
+    where $\mathrm{Exp}(\cdot): \mathbb{R}^3 \to SO(3)$ is the exponential map;
+    \item Biases: $\mathbf{b}_{\omega,i+1} = \mathbf{b}_{\omega,i} + \mathbf{n}_{b\omega} \Delta t$, $\mathbf{b}_{a,i+1} = \mathbf{b}_{a,i} + \mathbf{n}_{ba} \Delta t$;
+    \item Gravity: $\mathbf{g}_{i+1} = \mathbf{g}_i$.
+\end{enumerate}
+
+This discrete model serves as the state transition function in the filter.
+
+\subsubsection{Measurement Model}
+
+For the $j$-th LiDAR feature point, the residual observation is:
+\begin{equation}
+    \mathbf{z}_j = h_j(\mathbf{x}_k) + \mathbf{v}_j = \mathbf{G}_j \left( {}^G\hat{\mathbf{p}}_{f_j} - {}^G\mathbf{q}_j \right) + \mathbf{v}_j,
+    \label{eq:meas_model}
+\end{equation}
+where:
+\begin{itemize}
+    \item ${}^G\hat{\mathbf{p}}_{f_j}$ is the motion-compensated LiDAR point in the global frame (computed via backward propagation);
+    \item ${}^G\mathbf{q}_j$ is a reference point on the nearest plane or edge in the map;
+    \item $\mathbf{G}_j = 
+    \begin{cases}
+        \mathbf{u}_j^\top & \text{(plane feature)} \\
+        [\mathbf{u}_j]_\times & \text{(edge feature)}
+    \end{cases}$, with $\mathbf{u}_j$ the normal or direction vector;
+    \item $\mathbf{v}_j \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_j)$ is the measurement noise.
+\end{itemize}
+
+\subsection{Noise and Uncertainty Settings}
+\label{subsec:noise}
+
+The noise covariances are configured as:
+
+\begin{itemize}
+    \item \textbf{Process noise covariance $\mathbf{Q} \in \mathbb{R}^{15 \times 15}$}: Diagonal matrix:
+    \[
+    \mathbf{Q} = \mathrm{diag}\left(
+        \sigma_{\omega}^2 \mathbf{I}_3,\,
+        \sigma_{a}^2 \mathbf{I}_3,\,
+        \sigma_{b\omega}^2 \mathbf{I}_3,\,
+        \sigma_{ba}^2 \mathbf{I}_3
+    \right),
+    \]
+    where $\sigma_{\omega}, \sigma_{a}, \sigma_{b\omega}, \sigma_{ba}$ are standard deviations from sensor specs.
+
+    \item \textbf{Measurement noise covariance $\mathbf{R} \in \mathbb{R}^{m \times m}$}: Diagonal (feature points assumed independent):
+    \[
+    \mathbf{R} = \mathrm{diag}\left( \sigma_{\text{plane}}^2, \dots, \sigma_{\text{edge}}^2, \dots \right).
+    \]
+\end{itemize}
+
+\subsection{Observability and Identifiability Analysis}
+\label{subsec:observability}
+
+The system is \textit{locally observable} under general motion:
+
+\begin{itemize}
+    \item IMU provides continuous excitation of position, velocity, and orientation;
+    \item LiDAR features offer absolute geometric constraints to resolve scale and orientation;
+    \item Online estimation of $\mathbf{g}^G$ removes dependence on a priori gravity direction, enhancing robustness in non-horizontal scenarios;
+    \item With sufficient non-degenerate features, the observability matrix has full rank.
+\end{itemize}
+
+This aligns with the theoretical analysis in \cite{xu2021fast}, confirming that the state can be uniquely determined in typical operating conditions.

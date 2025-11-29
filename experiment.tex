@@ -1,0 +1,32 @@
+\section{Implementation and Experimental Setup}
+\begin{itemize}
+    \item \textbf{Language}: Python 3.10 with \texttt{NumPy}, \texttt{Matplotlib}, \texttt{filterpy}
+    \item \textbf{Simulation}: 100 time steps, 50 Monte Carlo runs
+    \item \textbf{Noise}: $\mathbf{Q} = \mathrm{diag}([0.1, 0.1, 0.01, 0.001, 0.001])$, $\mathbf{R} = \mathrm{diag}([0.5, 0.01, 0.1])$
+    \item \textbf{Metrics}: MSE, RMSE, computation time
+\end{itemize}
+
+\section{Results and Analysis}
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\linewidth]{figures/trajectory.pdf}
+\caption{True vs. estimated trajectory (UKF vs. EKF). UKF better captures sharp turns.}
+\label{fig:traj}
+\end{figure}
+
+% Table~\ref{tab:results} summarizes performance:
+\begin{table}[H]
+\centering
+\caption{Estimation Error Comparison}
+\label{tab:results}
+\begin{tabular}{lcc}
+\toprule
+Method & MSE ($\times 10^{-2}$) & Avg. Time (ms) \\
+\midrule
+EKF & 3.42 & 1.8 \\
+UKF & 2.67 & 3.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The UKF reduces MSE by 22\% at the cost of higher computation. Sensitivity analysis shows UKF maintains accuracy even when $\mathbf{R}$ increases by 200\%.

@@ -3,132 +3,13 @@
 \begin{document}
 
 \maketitle
-
-\begin{abstract}
-This project investigates state estimation for a nonlinear dynamic system using the Unscented Kalman Filter (UKF). We model a 2D target tracking scenario with nonlinear motion dynamics and noisy measurements. The UKF is implemented in Python and compared against the Extended Kalman Filter (EKF) under varying noise conditions. Results show that UKF achieves lower estimation error (MSE reduced by 22\%) in highly nonlinear regimes, demonstrating its robustness for robotic state estimation tasks.
-\end{abstract}
-
 \tableofcontents
 \newpage
-
-\section{Introduction}
-\label{sec:introduction}
-\subsection{Background}
-Simultaneous Localization and Mapping (SLAM) is a fundamental capability for autonomous mobile robots, including unmanned aerial vehicles (UAVs). While visual (inertial) odometry (VO/VIO) offers a lightweight and low-cost solution with rich RGB information, it suffers from several limitations: it lacks direct depth measurements, demands significant computational resources for 3D reconstruction, and is highly sensitive to lighting variations.
-
-LiDAR-based odometry, on the other hand, overcomes these challenges by providing accurate, direct depth measurements that are robust to illumination changes and enable efficient 3D geometric inference. Recent works such as FAST-LIO \cite{fast_lio} and demonstrate that tightly-coupled LiDAR-inertial odometry based on iterated Kalman filtering can achieve fast, robust, and high-precision state estimation, making LiDAR a compelling sensor modality for reliable SLAM in dynamic and real-world environments.
-
-\subsection{Problem Motivation}
-Despite the robustness of LiDAR sensing, practical LiDAR-inertial odometry systems encounter three critical challenges that degrade estimation performance:
-
-\begin{enumerate}
-    \item \textbf{Feature Degradation in Cluttered Environments}: In unstructured or texture-poor scenes (e.g., long corridors, open fields), LiDAR point clouds lack distinctive geometric features. Thus, the LiDAR-based solution easily degenerates.
-
-    \item \textbf{Motion Distortion in Scanning Process}: A LiDAR scan is not instantaneous; points are sequentially sampled over tens to hundreds of milliseconds. If the platform is in motion during this interval, the resulting point cloud becomes geometrically distorted, which significantly corrupts feature extraction and scan alignment, especially in high-dynamic scenarios.
-
-    \item \textbf{Computational Bottleneck in Tight Fusion}: Tightly-coupled frameworks fuse raw LiDAR feature points (often $m \gg 100$) directly with IMU states. The conventional Kalman gain computation requires inverting a $3m \times 3m$ measurement covariance matrix, an operation with $\mathcal{O}(m^3)$ complexity that quickly becomes infeasible for real-time operation on resource-constrained platforms.
-\end{enumerate}
-
-Together, these issues demand an estimation framework that is \textit{robust to feature scarcity}, \textit{immune to motion-induced geometric distortion}, and \textit{computationally efficient} even under dense feature integration.
-
-\subsection{Project Objectives}
-To address the above challenges, this project reproduces and analyzes the core estimation pipeline of FAST-LIO, with three tightly aligned technical objectives:
-
-\begin{itemize}
-    \item \textbf{Robustness via Tight Coupling}: Replace scan-registration-based loosely-coupled fusion with a \textit{tightly-coupled iterated Kalman filter} that directly fuses raw LiDAR feature points with IMU measurements. This bypasses the need for stable high-level features, thereby mitigating \textit{feature degradation} in cluttered environments.
-
-    \item \textbf{Motion Distortion Compensation}: Implement a formal \textit{backward propagation} mechanism that, using IMU preintegration from the scan-end time, reconstructs the relative pose at each LiDAR point’s timestamp. This enables precise motion undistortion of the entire scan, resolving the \textit{motion distortion} problem at the measurement level.
-
-    \item \textbf{Efficient Kalman Update}: Derive and implement the reformulated Kalman gain based on the \textit{Woodbury matrix identity}:
-    $$
-    \mathbf{K} = (\mathbf{H}^\top \mathbf{R}^{-1} \mathbf{H} + \mathbf{P}^{-1})^{-1} \mathbf{H}^\top \mathbf{R}^{-1},
-    $$
-    which reduces matrix inversion from $\mathcal{O}(m^3)$ to $\mathcal{O}(n^3)$ (with $n = \dim(\text{state}) \ll m$), directly tackling the \textit{computational bottleneck}.
-\end{itemize}
-
-We evaluate the implemented algorithm through Python-based simulations and experiments on the public M3DGR dataset~\cite{m3dgr}, assessing performance in terms of estimation accuracy (RMSE), computational latency, and robustness, and validating these results against theoretical analysis.
-
-\subsection{Organization}
-The remainder of this report is organized as follows: Section~\ref{sec:modeling} formally defines the state-space model of the IMU-LiDAR system; Section~\ref{sec:methods} details the IEKF algorithm, including forward/backward propagation, residual computation, and iterative update; Section~\ref{sec:implementation} describes the simulation setup and implementation; Section~\ref{sec:results} presents quantitative results and performance analysis; and Section~\ref{sec:conclusion} concludes with contributions, limitations, and future work.
-
-\section{Problem Definition and System Modeling}
-\subsection{System Description}
-We consider a 2D constant-turn-rate target tracking model:
-\[
-\mathbf{x}_k = 
-\begin{bmatrix}
-p_x \\ p_y \\ v \\ \psi \\ \dot{\psi}
-\end{bmatrix}_k,
-\quad
-\mathbf{z}_k = 
-\begin{bmatrix}
-\rho \\ \theta \\ \dot{\rho}
-\end{bmatrix}_k,
-\]
-where $\mathbf{x}_k$ is the state vector (position, velocity, heading, turn rate), and $\mathbf{z}_k$ is the radar measurement (range, bearing, range rate).
-
-\subsection{State-Space Model}
-The nonlinear process and measurement models are:
-\begin{align}
-\mathbf{x}_{k+1} &= f(\mathbf{x}_k) + \mathbf{w}_k, \quad \mathbf{w}_k \sim \mathcal{N}(0, \mathbf{Q}) \\
-\mathbf{z}_k &= h(\mathbf{x}_k) + \mathbf{v}_k, \quad \mathbf{v}_k \sim \mathcal{N}(0, \mathbf{R})
-\end{align}
-Noise covariances $\mathbf{Q}$ and $\mathbf{R}$ are tuned to simulate realistic sensor uncertainty.
-
-\section{Estimation Algorithms}
-\subsection{Unscented Kalman Filter (UKF)}
-The UKF approximates the posterior distribution using sigma points. Key steps include:
-\begin{algorithm}[H]
-\caption{UKF Prediction and Update}
-\begin{algorithmic}[1]
-\State Compute sigma points $\chi_k$ from $\hat{\mathbf{x}}_{k|k}, \mathbf{P}_{k|k}$
-\State Propagate through $f(\cdot)$: $\chi_{k+1|k} = f(\chi_k)$
-\State Compute predicted mean $\hat{\mathbf{x}}_{k+1|k}$ and covariance $\mathbf{P}_{k+1|k}$
-\State Generate measurement sigma points: $\gamma_k = h(\chi_{k+1|k})$
-\State Compute predicted measurement $\hat{\mathbf{z}}_{k+1|k}$
-\State Update state using Kalman gain $\mathbf{K}_{k+1}$
-\end{algorithmic}
-\end{algorithm}
-
-\subsection{Extended Kalman Filter (EKF)}
-For comparison, we implement the EKF using Jacobian linearization of $f(\cdot)$ and $h(\cdot)$.
-
-\section{Implementation and Experimental Setup}
-\begin{itemize}
-    \item \textbf{Language}: Python 3.10 with \texttt{NumPy}, \texttt{Matplotlib}, \texttt{filterpy}
-    \item \textbf{Simulation}: 100 time steps, 50 Monte Carlo runs
-    \item \textbf{Noise}: $\mathbf{Q} = \mathrm{diag}([0.1, 0.1, 0.01, 0.001, 0.001])$, $\mathbf{R} = \mathrm{diag}([0.5, 0.01, 0.1])$
-    \item \textbf{Metrics}: MSE, RMSE, computation time
-\end{itemize}
-
-\section{Results and Analysis}
-\begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\linewidth]{figures/trajectory.pdf}
-\caption{True vs. estimated trajectory (UKF vs. EKF). UKF better captures sharp turns.}
-\label{fig:traj}
-\end{figure}
-
-% Table~\ref{tab:results} summarizes performance:
-\begin{table}[H]
-\centering
-\caption{Estimation Error Comparison}
-\label{tab:results}
-\begin{tabular}{lcc}
-\toprule
-Method & MSE ($\times 10^{-2}$) & Avg. Time (ms) \\
-\midrule
-EKF & 3.42 & 1.8 \\
-UKF & 2.67 & 3.5 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The UKF reduces MSE by 22\% at the cost of higher computation. Sensitivity analysis shows UKF maintains accuracy even when $\mathbf{R}$ increases by 200\%.
-
-\section{Conclusion}
-This project demonstrates the superiority of UKF over EKF in nonlinear state estimation. Future work includes deploying the filter on a ROS-based robot for real-time hand pose estimation, aligning with our research in low-cost robotic perception.
-
+\input{introduction.tex}
+\input{modeling.tex}
+\input{estimation.tex}
+\input{experiment.tex}
+\input{conclusion.tex}
 \printbibliography
 
 \end{document}
