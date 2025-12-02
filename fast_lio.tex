@@ -1,4 +1,40 @@
-\input{include.tex}
+\documentclass[12pt]{article}
+
+% =============== 中文支持（使用 xelatex 编译）===============
+\usepackage{ctex}  % 自动启用 UTF-8 和中文字体（Fandol / system fonts）
+
+% =============== 基础排版 ===============
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{caption, subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+
+% =============== 算法排版 ===============
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% =============== 超链接与参考文献 ===============
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=red,
+    urlcolor=cyan
+}
+
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+\renewcommand{\abstractname}{Abstract}
+\renewcommand{\contentsname}{Contents}
+
+% =============== 标题与作者 ===============
+\title{FAST-LIO: Theory and Reproduction \\ \large Course Project Report}
+\author{Junda Wu \and Hongkang Cui \and Yongjian Liu}
+\date{2025.12.3}
 
 \begin{document}
 

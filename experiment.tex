@@ -1,32 +1,39 @@
 \section{Implementation and Experimental Setup}
-\begin{itemize}
-    \item \textbf{Language}: Python 3.10 with \texttt{NumPy}, \texttt{Matplotlib}, \texttt{filterpy}
-    \item \textbf{Simulation}: 100 time steps, 50 Monte Carlo runs
-    \item \textbf{Noise}: $\mathbf{Q} = \mathrm{diag}([0.1, 0.1, 0.01, 0.001, 0.001])$, $\mathbf{R} = \mathrm{diag}([0.5, 0.01, 0.1])$
-    \item \textbf{Metrics}: MSE, RMSE, computation time
-\end{itemize}
+\label{sec:implementation}
+We successfully reproduced the FAST-LIO algorithm and conducted a comprehensive evaluation using the M3DGR dataset\cite{m3dgr}. 
+To ensure reproducibility and isolation, all experiments were executed in a Docker environment running Ubuntu 20.04.
+
+We mainly compared the performance by RMSE (Root Mean Square Error) and 
+the run time whether with the Kalman gain in\ref{eq:new_kalman_gain} or the efficient form in\ref{eq:kalman_gain_standard}.
 
 \section{Results and Analysis}
-\begin{figure}[H]
-\centering
-% \includegraphics[width=0.8\linewidth]{figures/trajectory.pdf}
-\caption{True vs. estimated trajectory (UKF vs. EKF). UKF better captures sharp turns.}
-\label{fig:traj}
-\end{figure}
+\label{sec:results}
+效果展示
 
-% Table~\ref{tab:results} summarizes performance:
-\begin{table}[H]
-\centering
-\caption{Estimation Error Comparison}
-\label{tab:results}
-\begin{tabular}{lcc}
-\toprule
-Method & MSE ($\times 10^{-2}$) & Avg. Time (ms) \\
-\midrule
-EKF & 3.42 & 1.8 \\
-UKF & 2.67 & 3.5 \\
-\bottomrule
-\end{tabular}
+误差分析
+
+运行时间分析
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{cccccc}
+    \toprule
+    \multirow{2}{*}{Method} & \multicolumn{2}{c}{Bag 1} & \multicolumn{2}{c}{Bag 2} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+     & Max.(ms) & Avg.(ms) & Max.(ms) & Avg.(ms) \\
+    \midrule
+    Old Formula & 1633.65 & 305.35 & 221.78 & 57.48 \\
+    New Formula & 2.97 & 0.40 & 2.39 & 0.33 \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:time_comparison}
 \end{table}
 
-The UKF reduces MSE by 22\% at the cost of higher computation. Sensitivity analysis shows UKF maintains accuracy even when $\mathbf{R}$ increases by 200\%.
+% TODO: figure
+As shown in the figure, in both datasets, the absence of
+the Woodbury identity significantly reduced FAST-
+LIO’s processing speed. While the old formula failed
+to complete Dataset 1 (allowing only about one-third of
+the trajectory to be estimated), it managed to finish
+Dataset 2—potentially because sparse point clouds
+later eased the computational load.

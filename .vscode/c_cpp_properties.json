@@ -1,0 +1,35 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/lyj090/catkin_ws/devel/include/**",
+        "/home/lyj090/event_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/lyj090/catkin_ws/src/aerial_event/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_corner_events-master/corner_event_detector/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_dvs_ros/davis_ros_driver/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_dvs_ros/dvs_calibration/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_dvs_ros/dvs_renderer/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_dvs_ros/dvs_ros_driver/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_dvs_ros/dvxplorer_ros_driver/include/**",
+        "/home/lyj090/event_ws/src/event_tracker/include/**",
+        "/home/lyj090/catkin_ws/src/imu_event/include/**",
+        "/home/lyj090/catkin_ws/src/prophesee_ros_wrapper/prophesee_ros_driver/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_quadrotor_common/quadrotor_common/include/**",
+        "/home/lyj090/catkin_ws/src/event-based_object_catching_anymal-master/rpg_dynamic_obstacle_detection/include/**",
+        "/home/lyj090/catkin_ws/src/rpg_quadrotor_common/state_predictor/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
