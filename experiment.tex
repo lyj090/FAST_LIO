@@ -4,7 +4,7 @@
 We successfully reproduced the core estimation pipeline of FAST-LIO~\cite{fast_lio}, including forward/backward propagation, motion undistortion, and the iterated Kalman update with the reformulated Kalman gain. 
 The entire system is implemented in C++ for point cloud processing.
 
-To ensure experimental reproducibility and environmental isolation, all tests were conducted within a Docker container running Ubuntu 20.04. The M3DGR dataset~\cite{m3dgr} is selected for its benchmark-quality LiDAR-IMU sequences and ground-truth poses from a high-precision GNSS/INS system.
+To ensure experimental reproducibility and environmental isolation, all tests were conducted within a Docker container running Ubuntu 20.04. The M3DGR dataset~\cite{m3dgr} is selected for its benchmark-quality LiDAR-IMU sequences and ground-truth poses from a high-precision RTK system.
 
 We evaluate two key aspects:
 \begin{enumerate}
@@ -60,13 +60,15 @@ Figure~\ref{fig:time_comparison} and Table~\ref{tab:time_comparison} compare the
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.6\textwidth]{media/time_analize.png}
+    \includegraphics[width=0.6\textwidth]{media/time_analize.pdf}
     \caption{Per-scan processing time comparison between the conventional (old) and Woodbury-optimized (new) Kalman gain formulas.}
     \label{fig:time_comparison}
 \end{figure}
 
 \begin{table}[ht]
     \centering
+    \caption{Processing time (ms) per LiDAR scan.}
+    \label{tab:time_comparison}
     \begin{tabular}{cccccc}
     \toprule
     \multirow{2}{*}{Method} & \multicolumn{2}{c}{Bag 1} & \multicolumn{2}{c}{Bag 2} \\
@@ -77,8 +79,6 @@ Figure~\ref{fig:time_comparison} and Table~\ref{tab:time_comparison} compare the
     New Formula & 2.97 & 0.40 & 2.39 & 0.33 \\
     \bottomrule
     \end{tabular}
-    \caption{Processing time (ms) per LiDAR scan.}
-    \label{tab:time_comparison}
 \end{table}
 
-The results are striking: the Woodbury-optimized formulation reduces average processing time by \textbf{>99.8\%}—from 305 ms to just 0.4 ms per scan in the indoor sequence. This dramatic improvement enables real-time operation at 50 Hz (LiDAR rate), whereas the conventional method fails to keep up, often dropping scans. In Bag 1, the old formula could only process the first $\sim$30\% of the trajectory before latency accumulated beyond the scan interval. In Bag 2 (sparser features, smaller $m$), it barely completed the sequence but with significant delay. This validates that the computational bottleneck of tight LiDAR-inertial fusion lies in the Kalman gain computation, and the proposed reformulation is essential for practical deployment.
+The results are striking: the Woodbury-optimized formulation reduces average processing time by over \textbf{99.8\%}—from 305 ms to just 0.4 ms per scan in the indoor sequence. This dramatic improvement enables real-time operation at 50 Hz (LiDAR rate), whereas the conventional method fails to keep up, often dropping scans. In Bag 1, the old formula could only process the first $\sim$30\% of the trajectory before latency accumulated beyond the scan interval. In Bag 2 (sparser features, smaller $m$), it barely completed the sequence but with significant delay. This validates that the computational bottleneck of tight LiDAR-inertial fusion lies in the Kalman gain computation, and the proposed reformulation is essential for practical deployment.

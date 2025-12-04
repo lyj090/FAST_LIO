@@ -9,30 +9,31 @@ This section provides a formal description of the LiDAR-inertial system, includi
 The task is real-time 6-DoF pose estimation of a mobile robot (e.g., UAV or ground vehicle) using a tightly coupled LiDAR-IMU sensor suite. The system components are defined as follows:
 
 \begin{itemize}
-    \item \textbf{State vector $\mathbf{x}_k$}: The full state of the IMU in the global frame $G$ includes:
+    \item \textbf{State vector $\mathbf{x}_k$}: The full state of the IMU in the global frame $G$ (i.e., the first IMU frame) includes:
     \begin{itemize}
-        \item Position $\mathbf{p}^G_I \in \mathbb{R}^3$ and orientation $\mathbf{R}^G_I \in SO(3)$;
-        \item Velocity $\mathbf{v}^G_I \in \mathbb{R}^3$;
-        \item IMU bias terms: gyroscope bias $\mathbf{b}_\omega \in \mathbb{R}^3$, accelerometer bias $\mathbf{b}_a \in \mathbb{R}^3$;
-        \item Gravity vector $\mathbf{g}^G \in \mathbb{R}^3$ (estimated online for robustness in non-level environments).
+        \item Position ${}^G\mathbf{p}_I \in \mathbb{R}^3$;
+        \item Orientation ${}^G\mathbf{R}_I \in SO(3)$;
+        \item Velocity ${}^G\mathbf{v}_I \in \mathbb{R}^3$;
+        \item IMU bias terms: gyroscope bias $\mathbf{b}_{\boldsymbol{\omega}} \in \mathbb{R}^3$, accelerometer bias $\mathbf{b}_{\mathbf{a}} \in \mathbb{R}^3$;
+        \item Gravity vector ${}^G\mathbf{g} \in \mathbb{R}^3$ (estimated online for robustness in non-level environments).
     \end{itemize}
     The total state dimension is 18:
     \begin{equation}
-        \mathbf{x} = \left[ \mathbf{R}^G_I, \mathbf{p}^G_I, \mathbf{v}^G_I, \mathbf{b}_\omega, \mathbf{b}_a, \mathbf{g}^G \right]^\top.
+        \mathbf{x} = \left[ {}^G\mathbf{R}_I^T, {}^G\mathbf{p}_I^T, {}^G\mathbf{v}_I^T, \mathbf{b}_{\boldsymbol{\omega}}^T, \mathbf{b}_{\mathbf{a}}^T, {}^G\mathbf{g}^T \right]^T.
     \end{equation}
 
     \item \textbf{Input $\mathbf{u}_k$}: Raw IMU measurements at time $k$:
     \begin{itemize}
-        \item Angular velocity: $\boldsymbol{\omega}^m_I = \boldsymbol{\omega}_I + \mathbf{b}_\omega + \mathbf{n}_\omega$;
-        \item Specific force: $\mathbf{a}^m_I = \mathbf{a}_I + \mathbf{b}_a + \mathbf{n}_a$,
+        \item Angular velocity: $\boldsymbol{\omega}_m = \boldsymbol{\omega}_I + \mathbf{b}_{\boldsymbol{\omega}} + \mathbf{n}_{\boldsymbol{\omega}}$;
+        \item Specific force: $\mathbf{a}_m = \mathbf{a}_I + \mathbf{b}_{\mathbf{a}} + \mathbf{n}_{\mathbf{a}}$,
     \end{itemize}
-    where $\mathbf{n}_\omega$ and $\mathbf{n}_a$ are zero-mean Gaussian white noises.
+    where $\mathbf{n}_{\boldsymbol{\omega}}$ and $\mathbf{n}_{\mathbf{a}}$ are zero-mean Gaussian white noises, $\mathbf{n}_{\mathbf{b}_\mathbf{a}}$ and $\mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}$ are zero-mean Gaussian noises of the IMU bias.
 
-    \item \textbf{Observation $\mathbf{z}_k$}: A set of geometric feature points (planes or edges) extracted from a LiDAR scan. Each point $j$ is initially expressed in its local scan frame $L_j$.
+    \item \textbf{Observation}: The residual will be constructed from a set of geometric feature points (planes or edges) extracted from a LiDAR scan.
 
     \item \textbf{Sources of uncertainty}:
     \begin{itemize}
-        \item \textit{Process noise}: IMU measurement noise ($\mathbf{n}_\omega, \mathbf{n}_a$) and random-walk bias drift ($\mathbf{n}_{b\omega}, \mathbf{n}_{ba}$);
+        \item \textit{Process noise}: IMU measurement noise ($\mathbf{n}_{\boldsymbol{\omega}}, \mathbf{n}_{\mathbf{a}}$) and random-walk bias drift ($\mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}, \mathbf{n}_{\mathbf{b}_\mathbf{a}}$);
         \item \textit{Measurement noise}: Geometric noise $\mathbf{n}_{f_j}$ in LiDAR point positions;
         \item \textit{Modeling errors}: Unmodeled dynamics, calibration inaccuracies, and feature extraction errors.
     \end{itemize}
@@ -41,7 +42,7 @@ The task is real-time 6-DoF pose estimation of a mobile robot (e.g., UAV or grou
 \subsection{State-Space Model}
 \label{subsec:state_space_model}
 
-The system is modeled as a continuous-discrete hybrid dynamical system.
+The system dynamics are first modeled in a continuous manner and then discretized.
 
 Let $\mathcal{M}$ be the manifold of dimension $n$ in consideration (e.g., $\mathcal{M} = SO(3)$). Since manifolds are locally homeomorphic to $\mathbb{R}^n$, we can establish a bijective mapping from a local neighborhood on $\mathcal{M}$ to its tangent space $\mathbb{R}^n$ via two encapsulation operators $\boxplus$ and $\boxminus$\cite{calculate_def}:
 
@@ -49,13 +50,13 @@ Let $\mathcal{M}$ be the manifold of dimension $n$ in consideration (e.g., $\mat
     \boxplus &: \mathcal{M} \times \mathbb{R}^n \to \mathcal{M}; &
     \boxminus : \mathcal{M} \times \mathcal{M} \to \mathbb{R}^n \\
     \mathcal{M} = SO(3): & \quad \mathbf{R} \boxplus \mathbf{r} = \mathbf{R} \mathrm{Exp}(\mathbf{r}); &
-    \mathbf{R}_1 \boxminus \mathbf{R}_2 = \mathrm{Log}(\mathbf{R}_2^\top \mathbf{R}_1) \\
+    \mathbf{R}_1 \boxminus \mathbf{R}_2 = \mathrm{Log}(\mathbf{R}_2^T \mathbf{R}_1) \\
     \mathcal{M} = \mathbb{R}^n: & \quad \mathbf{a} \boxplus \mathbf{b} = \mathbf{a} + \mathbf{b}; &
     \mathbf{a} \boxminus \mathbf{b} = \mathbf{a} - \mathbf{b}
 \end{align*}
+where $\mathrm{Exp}(\mathbf{r}) = \mathbf{I} + \frac{\mathbf{r}}{\|\mathbf{r}\|} \sin(\|\mathbf{r}\|) + \frac{\mathbf{r}^2}{\|\mathbf{r}\|^2} (1 - \cos(\|\mathbf{r}\|))$ is the exponential map\cite{calculate_def}, and $\mathrm{Log}(\cdot)$ is its inverse map.
 
-where $\mathrm{Exp}(\mathbf{r}) = \mathbf{I} + \frac{\|\mathbf{r}\|}{\|\mathbf{r}\|} \sin(\|\mathbf{r}\|) + \frac{\mathbf{r}\mathbf{r}^\top}{\|\mathbf{r}\|^2} (1 - \cos(\|\mathbf{r}\|))$ is the exponential map\cite{calculate_def}, and $\mathrm{Log}(\cdot)$ is its inverse map. For a compound manifold $\mathcal{M} = SO(3) \times \mathbb{R}^n$ we have:
-
+For a compound manifold $\mathcal{M} = SO(3) \times \mathbb{R}^n$ we have
 \begin{equation*}
     \begin{bmatrix} \mathbf{R} \\ \mathbf{a} \end{bmatrix} \boxplus \begin{bmatrix} \mathbf{r} \\ \mathbf{b} \end{bmatrix} = \begin{bmatrix} \mathbf{R} \boxplus \mathbf{r} \\ \mathbf{a} + \mathbf{b} \end{bmatrix}; \quad
     \begin{bmatrix} \mathbf{R}_1 \\ \mathbf{a} \end{bmatrix} \boxminus \begin{bmatrix} \mathbf{R}_2 \\ \mathbf{b} \end{bmatrix} = \begin{bmatrix} \mathbf{R}_1 \boxminus \mathbf{R}_2 \\ \mathbf{a} - \mathbf{b} \end{bmatrix}.
@@ -69,20 +70,18 @@ From the above definition, it is easy to verify that:
 \subsubsection{Continuous-Time Dynamics}
 
 Assuming an IMU is rigidly attached to the LiDAR with a known extrinsic ${}^{I}\mathbf{T}_{L} = ({}^{I}\mathbf{R}_{L}, {}^{I}\mathbf{p}_{L})$. Taking the IMU frame (denoted as $I$) as the body frame of reference leads to a kinematic model:
-
-\begin{equation}
-    \begin{split}
-        \dot{\mathbf{p}}^G_I &= \mathbf{v}^G_I, \\
-        \dot{\mathbf{v}}^G_I &= \mathbf{R}^G_I (\mathbf{a}^m_I - \mathbf{b}_a - \mathbf{n}_a) + \mathbf{g}^G, \\
-        \dot{\mathbf{R}}^G_I &= \mathbf{R}^G_I (\boldsymbol{\omega}^m_I - \mathbf{b}_\omega - \mathbf{n}_\omega)^\wedge, \\
-        \dot{\mathbf{b}}_\omega &= \mathbf{n}_{b\omega}, \quad
-        \dot{\mathbf{b}}_a = \mathbf{n}_{ba}, \quad
-        \dot{\mathbf{g}}^G = \mathbf{0}.
-    \end{split}
-    \label{eq:continuous_dynamics}
-\end{equation}
-
-where ${}^G\mathbf{p}_I$, ${}^G\mathbf{R}_I$ are the position and attitude of IMU in the global frame (i.e., the first IMU frame, denoted as $G$), ${}^G\mathbf{g}$ is the unknown gravity vector in the global frame, $\mathbf{a}_m$ and $\boldsymbol{\omega}_m$ are IMU measurements, $\mathbf{n}_a$ and $\mathbf{n}_\omega$ are the white noise of IMU measurements, $\mathbf{b}_a$ and $\mathbf{b}_\omega$ are the IMU bias modelled as the random walk process with Gaussian noises $\mathbf{n}_{b_a}$ and $\mathbf{n}_{b_\omega}$, and the notation $[\mathbf{a}]_\wedge$ denotes the skew-symmetric matrix of vector $\mathbf{a} \in \mathbb{R}^3$ that maps the cross product operation.
+\begin{subequations}
+    \begin{align}
+        {}^G\dot{\mathbf{p}}_I &= {}^G\mathbf{v}_I, \\
+        {}^G\dot{\mathbf{v}}_I &= {}^G\mathbf{R}_I (\mathbf{a}_m - \mathbf{b}_{\mathbf{a}} - \mathbf{n}_{\mathbf{a}}) + {}^G\mathbf{g}, \\
+        {}^G\dot{\mathbf{R}}_I &= {}^G\mathbf{R}_I \lfloor\boldsymbol{\omega}_m - \mathbf{b}_{\boldsymbol{\omega}} - \mathbf{n}_{\boldsymbol{\omega}}\rfloor_\wedge, \label{rotation_dyn}\\
+        \dot{\mathbf{b}}_{\boldsymbol{\omega}} &= \mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}, \quad
+        \dot{\mathbf{b}}_a = \mathbf{n}_{\mathbf{b}_\mathbf{a}}, \quad
+        {}^G\dot{\mathbf{g}} = \mathbf{0}.
+    \end{align}
+\label{eq:continuous_dynamics}%
+\end{subequations}
+where the notation $\lfloor\mathbf{a}\rfloor_\wedge$ denotes the skew-symmetric matrix of vector $\mathbf{a} \in \mathbb{R}^3$ that maps the cross product operation. The derivation of \eqref{rotation_dyn} is shown in the Appendix \ref{appendix: rotation}.
 
 \subsubsection{Discrete Model}
 Based on the $\boxplus$ operation defined above, we can discretize the continuous model in \eqref{eq:continuous_dynamics} at the IMU sampling period $\Delta t$ using a zero-order holder. The resultant discrete model is:
@@ -95,15 +94,16 @@ where $i$ is the index of IMU measurements, the function $\mathbf{f}$, state $\m
 \begin{equation}
     \begin{split}
     \mathcal{M} &= SO(3) \times \mathbb{R}^{15}, \quad \dim(\mathcal{M}) = 18 \\
-    \mathbf{x} &\doteq \begin{bmatrix} {}^G\mathbf{R}_I^T & {}^G\mathbf{p}_I^T & {}^G\mathbf{v}_I^T & \mathbf{b}_\omega^T & \mathbf{b}_a^T & {}^G\mathbf{g}^T \end{bmatrix}^T \in \mathcal{M} \\
+    \mathbf{x} &\doteq \begin{bmatrix} {}^G\mathbf{R}_I^T & {}^G\mathbf{p}_I^T & {}^G\mathbf{v}_I^T & \mathbf{b}_{\boldsymbol{\omega}}^T & \mathbf{b}_{\mathbf{a}}^T & {}^G\mathbf{g}^T \end{bmatrix}^T \in \mathcal{M} \\
     \mathbf{u} &\doteq \begin{bmatrix} \boldsymbol{\omega}_m^T & \mathbf{a}_m^T \end{bmatrix}^T, \quad
-    \mathbf{w} \doteq \begin{bmatrix} \mathbf{n}_{b\omega}^T & \mathbf{n}_{ba}^T & \mathbf{n}_\omega^T & \mathbf{n}_a^T \end{bmatrix}^T \\
+    \mathbf{w} \doteq \begin{bmatrix}  \mathbf{n}_{\boldsymbol{\omega}}^T & \mathbf{n}_{\mathbf{a}}^T & \mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}^T & \mathbf{n}_{\mathbf{b}_\mathbf{a}}^T \end{bmatrix}^T \\
     \mathbf{f}(\mathbf{x}_i, \mathbf{u}_i, \mathbf{w}_i) &= 
     \begin{bmatrix}
-        \boldsymbol{\omega}_{m_i} - \mathbf{b}_{\omega_i} - \mathbf{n}_{\omega_i} \\
-        {}^G\mathbf{R}_{I_i} (\mathbf{a}_{m_i} - \mathbf{b}_{a_i} - \mathbf{n}_{a_i}) + {}^G\mathbf{g}_i \\
-        \mathbf{n}_{b\omega_i} \\
-        \mathbf{n}_{ba_i} \\
+        \boldsymbol{\omega}_{m_i} - \mathbf{b}_{{\boldsymbol{\omega}}_i} - \mathbf{n}_{{\boldsymbol{\omega}}_i} \\
+        {}^G\mathbf{v}_{I_i} \\ 
+        {}^G\mathbf{R}_{I_i} (\mathbf{a}_{m_i} - \mathbf{b}_{\mathbf{a}_i} - \mathbf{n}_{\mathbf{a}_i}) + {}^G\mathbf{g}_i \\
+        \mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}_i}} \\
+        \mathbf{n}_{\mathbf{b}_{\mathbf{a}_i}} \\
         \mathbf{0}_{3\times1}
     \end{bmatrix}.
     \label{eq:discrete_dynamics} 
@@ -123,10 +123,10 @@ where:
     \item ${}^G\mathbf{q}_j$ is a reference point on the nearest plane or edge in the map;
     \item $\mathbf{G}_j = 
     \begin{cases}
-        \mathbf{u}_j^\top & \text{(plane feature)} \\
+        \mathbf{u}_j^T & \text{(plane feature)} \\
         [\mathbf{u}_j]_\times & \text{(edge feature)}
     \end{cases}$, with $\mathbf{u}_j$ the normal or direction vector;
-    \item $\mathbf{v}_j \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_j)$ is the measurement noise.
+    \item $\mathbf{v}_j \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_j)$ is the measurement noise that comes from the raw geometric noise $\mathbf{n}_{f_j}$.
 \end{itemize}
 
 \subsection{Noise and Uncertainty Settings}
@@ -135,18 +135,18 @@ where:
 The noise covariances are configured as:
 
 \begin{itemize}
-    \item \textbf{Process noise covariance $\mathbf{Q} \in \mathbb{R}^{15 \times 15}$}: Diagonal matrix:
+    \item \textbf{Process noise covariance $\mathbf{Q} \in \mathbb{R}^{12 \times 12}$}: Diagonal matrix:
     \[
     \mathbf{Q} = \mathrm{diag}\left(
-        \sigma_{\omega}^2 \mathbf{I}_3,\,
-        \sigma_{a}^2 \mathbf{I}_3,\,
-        \sigma_{b\omega}^2 \mathbf{I}_3,\,
-        \sigma_{ba}^2 \mathbf{I}_3
+        \sigma_{{\boldsymbol{\omega}}}^2 \mathbf{I}_3,\,
+        \sigma_{\mathbf{a}}^2 \mathbf{I}_3,\,
+        \sigma_{\mathbf{b}_{\boldsymbol{\omega}}}^2 \mathbf{I}_3,\,
+        \sigma_{\mathbf{b}_\mathbf{a}}^2 \mathbf{I}_3
     \right),
     \]
-    where $\sigma_{\omega}, \sigma_{a}, \sigma_{b\omega}, \sigma_{ba}$ are standard deviations from sensor specs.
+    where $\sigma_{{\boldsymbol{\omega}}}, \sigma_{\mathbf{a}}, \sigma_{\mathbf{b}_{\boldsymbol{\omega}}}, \sigma_{\mathbf{b}_\mathbf{a}}$ are standard deviations from sensor specs.
 
-    \item \textbf{Measurement noise covariance $\mathbf{R} \in \mathbb{R}^{m \times m}$}: Diagonal (feature points assumed independent):
+    \item \textbf{Measurement noise covariance $\mathbf{R} \in \mathbb{R}^{3m \times 3m}$}: Diagonal (feature points assumed independent):
     \[
     \mathbf{R} = \mathrm{diag}\left( \sigma_{\text{plane}}^2, \dots, \sigma_{\text{edge}}^2, \dots \right).
     \]
@@ -160,7 +160,7 @@ The system is \textit{locally observable} under general motion:
 \begin{itemize}
     \item IMU provides continuous excitation of position, velocity, and orientation;
     \item LiDAR features offer absolute geometric constraints to resolve scale and orientation;
-    \item Online estimation of $\mathbf{g}^G$ removes dependence on a priori gravity direction, enhancing robustness in non-horizontal scenarios;
+    \item Online estimation of ${}^G\mathbf{g}$ removes dependence on a priori gravity direction, enhancing robustness in non-horizontal scenarios;
     \item With sufficient non-degenerate features, the observability matrix has full rank.
 \end{itemize}
 

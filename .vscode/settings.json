@@ -77,6 +77,14 @@
             "env": {}
         },
         {
+            "name": "biber",
+            "command": "biber",
+            "args": [
+                "%DOCFILE%"
+            ],
+            "env": {}
+        },
+        {
             "name": "rnw2tex",
             "command": "Rscript",
             "args": [
@@ -122,10 +130,10 @@
             ]
         },
         {
-            "name": "pdflatex ➞ bibtex ➞ pdflatex × 2",
+            "name": "pdflatex ➞ biber ➞ pdflatex × 2",
             "tools": [
                 "pdflatex",
-                "bibtex",
+                "biber",
                 "pdflatex",
                 "pdflatex"
             ]
@@ -151,10 +159,10 @@
             ]
         }
     ],
-    "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 500,
-    "latex-workshop.latex.autoBuild.run": "onSave",
-    "latex-workshop.latex.autoBuild.interval": 500,
+    // "files.autoSave": "afterDelay",
+    // "files.autoSaveDelay": 500,
+    // "latex-workshop.latex.autoBuild.run": "onSave",
+    // "latex-workshop.latex.autoBuild.interval": 500,
     "latex-workshop.synctex.afterBuild.enabled": true,
 
     "editor.wordWrap": "wordWrapColumn",

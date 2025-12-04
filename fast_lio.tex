@@ -1,7 +1,9 @@
 \documentclass[12pt]{article}
 
 % =============== 中文支持（使用 xelatex 编译）===============
-\usepackage{ctex}  % 自动启用 UTF-8 和中文字体（Fandol / system fonts）
+% \usepackage{ctex}  % 自动启用 UTF-8 和中文字体（Fandol / system fonts）
+% 每段段首空两格
+\usepackage{indentfirst}
 
 % =============== 基础排版 ===============
 \usepackage[a4paper, margin=2.5cm]{geometry}
@@ -34,9 +36,9 @@
 \renewcommand{\tablename}{Table}
 
 % =============== 标题与作者 ===============
-\title{FAST-LIO: Theory and Reproduction \\ \large Course Project Report}
+\title{FAST-LIO: Theory and Reproduction \\ \large Course Project Report of {\it Optimal Estimation}}
 \author{Junda Wu \and Hongkang Cui \and Yongjian Liu}
-\date{2025.12.3}
+\date{\today}
 
 \begin{document}
 
@@ -48,6 +50,7 @@
 \input{estimation.tex}
 \input{experiment.tex}
 \input{conclusion.tex}
+\input{appendix.tex}
 \printbibliography
 
 \end{document}

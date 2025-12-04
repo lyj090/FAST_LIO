@@ -1,0 +1,127 @@
+\appendix
+
+\part*{Appendix}
+
+\section{Derivation of the attitude kinematics \texorpdfstring{\eqref{rotation_dyn}}{(2c)}}
+\label{appendix: rotation}
+
+The rotation matrix from the global frame to the IMU frame can be represented as
+\[
+{}^G\mathbf{R}_I = [{}^G\mathbf{x}_I\quad {}^G\mathbf{y}_I\quad {}^G\mathbf{z}_I]
+\]
+Take the time derivative of the above equation and we obtain
+\[{}^G\dot{\mathbf{R}}_I = [{}^G\dot{\mathbf{x}}_I\quad {}^G\dot{\mathbf{y}}_I\quad {}^G\dot{\mathbf{z}}_I] = [{}^G\boldsymbol{\omega}_I\times ^G\dot{\mathbf{x}}_I\quad {}^G\boldsymbol{\omega}_I\times {}^G\dot{\mathbf{y}}_I\quad {}^G\boldsymbol{\omega}_I\times {}^G\dot{\mathbf{z}}_I] = \lfloor{}^G\boldsymbol{\omega}_I\rfloor_\wedge {}^G{\mathbf{R}}_I\]
+
+Since ${}^G\boldsymbol{\omega}_I = {}^G{\mathbf{R}}_I \boldsymbol{\omega}$ and $\lfloor\mathbf{R} \mathbf{p}\rfloor_\wedge = \mathbf{R}\lfloor\mathbf{p}\rfloor_\wedge\mathbf{R}^T$, we have
+\[{}^G\dot{\mathbf{R}}_I = \lfloor{}^G\mathbf{R}_I \boldsymbol{\omega}\rfloor_\wedge {}^G{\mathbf{R}}_I = {}^G\mathbf{R}_I \lfloor\boldsymbol{\omega}\rfloor_\wedge {}^I\mathbf{R}_G {}^G\mathbf{R}_I = {}^G\mathbf{R}_I \lfloor\boldsymbol{\omega}\rfloor_\wedge.\]
+
+\section{Derivation of the matrices in \texorpdfstring{\eqref{eq:linearized_matrices}}{(9)}}
+\label{appendix:derivation}
+From \eqref{eq:error_dynamics}, noting that ${\mathbf{x}}_i = \widehat{\mathbf{x}}_i \boxplus \widetilde{\mathbf{x}}_i$, we have
+\[\widetilde{\mathbf{x}}_{i+1}=\left((\widehat{\mathbf{x}}_i\boxplus\widetilde{\mathbf{x}}_i)\boxplus\Delta t\mathbf{f}\left(\mathbf{x}_i,\mathbf{u}_i,\mathbf{w}_i\right)\right)\boxminus\left(\widehat{\mathbf{x}}_i\boxplus\Delta t\mathbf{f}\left(\widehat{\mathbf{x}}_i,\mathbf{u}_i,\mathbf{0}\right)\right)\]
+Define
+\[\mathbf{g}(\widetilde{\mathbf{x}}_i,\mathbf{w}_i)=\mathbf{f}(\mathbf{x}_i,\mathbf{u}_i,\mathbf{w}_i)\Delta t=\mathbf{f}(\widehat{\mathbf{x}}_i\boxplus\widetilde{\mathbf{x}}_i,\mathbf{u}_i,\mathbf{w}_i)\Delta t\]
+we have
+\[\widetilde{\mathbf{x}}_{i+1}=\underbrace{\left(\left(\widehat{\mathbf{x}}_i\boxplus\widetilde{\mathbf{x}}_i\right)\boxplus\mathbf{g}\left(\widetilde{\mathbf{x}}_i,\mathbf{w}_i\right)\right)\boxminus\left(\widehat{\mathbf{x}}_i\boxplus\mathbf{g}\left(\mathbf{0},\mathbf{0}\right)\right)}_{\mathbf{G}(\widetilde{\mathbf{x}}_i,\mathbf{g}(\widetilde{\mathbf{x}}_i,\mathbf{w}_i))}\]
+Linearize the above equation at $\widetilde{\mathbf{x}}_{i}=\mathbf{0},\mathbf{w}_{i}=\mathbf{0}$, we obtain the expression for the matrices:
+\[
+\mathbf{F}_{\widetilde{\mathbf{x}}}=\left(\frac{\partial\mathbf{G}(\widetilde{\mathbf{x}}_{i},\mathbf{g}(\mathbf{0},\mathbf{0}))}{\partial\widetilde{\mathbf{x}}_{i}}+\frac{\partial\mathbf{G}(\mathbf{0},\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0}))}{\partial\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0})}\frac{\partial\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0})}{\partial\widetilde{\mathbf{x}}_{i}}\right)|_{\widetilde{\mathbf{x}}_{i}=\mathbf{0}}
+\]
+and
+\[\mathbf{F}_{\mathbf{w}}=\left(\frac{\partial \mathbf{G}(\mathbf{0},\mathbf{g}(\mathbf{0},\mathbf{w}_{i}))}{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}\frac{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}{\partial \mathbf{w}_{i}}\right)|_{\mathbf{w}_{i}=\mathbf{0}}\]
+
+To obtain the partial derivatives, we express $\mathbf{G}$ as follows
+\[
+\mathbf{G}=\left((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}\right)\boxminus \mathbf{d}
+\]
+where $\mathbf{G},\mathbf{b},\mathbf{c}\in\mathbb{R}^{18},\mathbf{a},\mathbf{d}\in SO(3)\times\mathbb{R}^{15}$.
+
+There are two cases:
+
+{\bf Case 1}: $\mathbf{a},\mathbf{b},\mathbf{c},\mathbf{d}\in\mathbb{R}^n,\quad\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{I}_n$. This case is trivial, since the $\boxplus$ / $\boxminus$ operation on $\mathbb{R}^{n}$ are simply the general element-wise addition / subtraction.
+
+{\bf Case 2}: $\mathbf{G},\mathbf{b},\mathbf{c}\in\mathbb{R}^{3},\mathbf{a},\mathbf{d}\in SO(3)$. In this case we have\[\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\mathbf{A}(\mathbf{G})^{-T}\mathrm{Exp}(-\mathbf{c})\mathbf{A}(\mathbf{b})^{T},\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{A}(\mathbf{G})^{-T}\mathbf{A}(\mathbf{c})^{T}\]
+where $\mathbf{A}(\cdot)$ is shown in \eqref{eq:attitude_matrix_inverse}.
+
+\begin{proof}[Proof of Case 2]
+    Since $\mathbf{G}=((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c})\boxminus \mathbf{d} =\mathrm{Log}(\mathbf{d}^{-1}\cdot((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}))$, we have 
+    \[\mathrm{Exp}(\mathbf{G})=\mathbf{d}^{-1}\cdot \mathbf{a}\cdot \mathrm{Exp}(\mathbf{b})\cdot \mathrm{Exp}(\mathbf{c}).\]
+    Add perbutation to both sides and we have
+    \[
+    \mathrm{Exp}(\mathbf{G}+\Delta \mathbf{G})=\mathbf{d}^{-1}\cdot \mathbf{a}\cdot \mathrm{Exp}(\mathbf{b}+\Delta \mathbf{b})\cdot \mathrm{Exp}(\mathbf{c})
+    \]
+    Use Baker-Campbell-Hausdorff (BCH) formula, we have
+    \[\mathrm{Exp}(\mathbf{G})\mathrm{Exp}(\mathbf{A}(\mathbf{G})^{T}\Delta \mathbf{G})=\mathbf{d}^{-1}\cdot \mathbf{a}\cdot \mathrm{Exp}(\mathbf{b})\mathrm{Exp}(\mathbf{A}(\mathbf{b})^{T}\Delta \mathbf{b})\cdot \mathrm{Exp}(\mathbf{c})\]
+    Then
+    \begin{align*}
+        \mathrm{Exp}(\mathbf{A}(\mathbf{G})^{T}\Delta \mathbf{G})&=(\mathrm{Exp}(\mathbf{c}))^{-1}(\mathrm{Exp}(\mathbf{b}))^{-1} \mathbf{a}^{-1}\mathbf{d}\cdot \mathbf{d}^{-1}\cdot \mathbf{a}\cdot \mathrm{Exp}(\mathbf{b})\mathrm{Exp}(\mathbf{A}(\mathbf{b})^{T}\Delta \mathbf{b})\cdot \mathrm{Exp}(\mathbf{c})\\
+        &=(\mathrm{Exp}(\mathbf{c}))^{T}\mathrm{Exp}(\mathbf{A}(\mathbf{b})^{T}\Delta \mathbf{b})\cdot \mathrm{Exp}(\mathbf{c})
+    \end{align*}
+    With the property that $\lfloor\mathbf{R} \mathbf{p}\rfloor_\wedge = \mathbf{R}\lfloor\mathbf{p}\rfloor_\wedge\mathbf{R}^T$, we have
+    \[
+    \mathrm{Exp}(\mathbf{A}(\mathbf{G})^{T}\Delta \mathbf{G}) = \mathrm{Exp}(\mathrm{Exp}(-\mathbf{c})\mathbf{A}(\mathbf{b})^{T}\Delta \mathbf{b})
+    \]
+    Taking the logarithm of both sides yields
+    \[
+    \frac{\Delta \mathbf{G}}{\Delta \mathbf{b}}=\mathbf{A}(\mathbf{G})^{-T}\mathrm{Exp}(-\mathbf{c})\mathbf{A}(\mathbf{b})^{T}.
+    \]
+
+    Similarly, add perbutation and we obtain
+    \[
+    \mathrm{Exp}(\mathbf{G}+\Delta \mathbf{G})= \mathbf{d}^{-1}\mathbf{a} \mathrm{Exp}(\mathbf{b})\mathrm{Exp}(\mathbf{c}+\Delta \mathbf{c})
+    \]
+    Use BCH formula again and we have
+    \[
+    \mathrm{Exp}(\mathbf{G})\mathrm{Exp}(\mathbf{A}(\mathbf{G})^{T}\Delta \mathbf{G})= \mathbf{d}^{-1}\mathbf{a} \mathrm{Exp}(\mathbf{b})\mathrm{Exp}(\mathbf{c})\mathrm{Exp}(\mathbf{A}(\mathbf{c})^T\Delta \mathbf{c})
+    \]
+    Then
+    \begin{align*}
+        \mathrm{Exp}(\mathbf{A}(\mathbf{G})^{T}\Delta \mathbf{G})&=(\mathrm{Exp}(\mathbf{c}))^{-1}(\mathrm{Exp}(\mathbf{b}))^{-1} \mathbf{a}^{-1}\mathbf{d}\cdot \mathbf{d}^{-1}\mathbf{a} \mathrm{Exp}(\mathbf{b})\mathrm{Exp}(\mathbf{c})\mathrm{Exp}(\mathbf{A}(\mathbf{c})^T\Delta \mathbf{c})\\
+        &=\mathrm{Exp}(\mathbf{A}(\mathbf{c})^{T}\Delta \mathbf{c})
+    \end{align*}
+    Taking the logarithm of both sides yields
+    \[
+    \frac{\Delta \mathbf{G}}{\Delta \mathbf{c}}=\mathbf{A}(\mathbf{G})^{-T}\mathbf{A}(\mathbf{c})^{T}.\qedhere
+    \]
+\end{proof}
+
+Then (Noticing that $\mathbf{A}(\mathbf{0})=\mathbf{I}$)
+\begin{align}
+    \frac{\partial\mathbf{G}(\widetilde{\mathbf{x}}_{i},\mathbf{g}(\mathbf{0},\mathbf{0}))}{\partial\widetilde{\mathbf{x}}_{i}} |_{\mathbf{\widetilde{x}}_i=\mathbf{0}}
+    &= \begin{bmatrix}
+   \mathbf{A}(\mathbf{0})^{-T}\mathrm{Exp}(-\mathbf{g}(\mathbf{0},\mathbf{0}))\mathbf{A}(\mathbf{0})^{T} & \mathbf{0}\\
+   \mathbf{0} & \mathbf{I}_{15\times 15}
+\end{bmatrix} \nonumber\\
+&= \begin{bmatrix}\mathrm{Exp}(-\mathbf{f}(\mathbf{\widehat{x}},\mathbf{u},\mathbf{0})\Delta t)&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}\nonumber\\
+&=\begin{bmatrix}\mathrm{Exp}(-(\boldsymbol{\omega}_{m}-\mathbf{\widehat{b}}_{\boldsymbol{\omega}})\Delta{t})&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}
+\label{eq:partialGpartialx}
+\end{align}
+and
+\begin{align}
+    \frac{\partial \mathbf{G}(\mathbf{0},\mathbf{g}(\mathbf{0},\mathbf{w}_{i}))}{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}|_{\mathbf{w}_i=\mathbf{0}} = \frac{\partial\mathbf{G}(\mathbf{0},\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0}))}{\partial\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0})}|_{\mathbf{\widetilde{x}}_i=\mathbf{0}} &=
+    \begin{bmatrix}\mathbf{A(0)}^{-T}\mathbf{A(g(0,0))}^T&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}\nonumber\\
+    &=\begin{bmatrix}\mathbf{A}((\boldsymbol{\omega}_{m}-\mathbf{\widehat{b}}_{\boldsymbol{\omega}})\Delta{t})&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}
+    \label{eq:partialGpartialg}
+\end{align}
+
+Use the discrete dynamics in \eqref{eq:discrete_dynamics}, we have (here we omit the index $i$ for simplicity)
+\begin{align}
+    \mathbf{g}\left(\widetilde{\mathbf{x}},\mathbf{w}\right)
+    &=\mathbf{f}\left(\mathbf{x},\mathbf{u},\mathbf{w}\right)\Delta t=\begin{bmatrix}\boldsymbol{\omega}_{m}-\mathbf{b}_{\boldsymbol{\omega}}-\mathbf{n}_{\boldsymbol{\omega}}\\{}^G{\mathbf{v}_{I}}\\{}^G\mathbf{R}_{I}\left(\mathbf{a}_{m}-\mathbf{b}_{\mathbf{a}}-\mathbf{n}_{\mathbf{a}}\right)+{}^{G}\mathbf{g}\\\mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}\\\mathbf{n}_{\mathbf{b}_{\mathbf{a}}}\\\mathbf{0}_{3\times1}\end{bmatrix}\Delta t\nonumber\\
+    &=\begin{bmatrix}
+        \boldsymbol{\omega}_{m}-\widehat{\mathbf{b}}_{\boldsymbol{\omega}}-\widetilde{\mathbf{b}}_{\boldsymbol{\omega}}-\mathbf{n}_{\boldsymbol{\omega}}\\
+        {}^G{\widehat{\mathbf{v}}_{I}}+{}^G{\widetilde{\mathbf{v}}_{I}}\\
+        {}^G\mathbf{\widehat{R}}_{I}\mathrm{Exp}(\delta\boldsymbol{\theta}^{T})\left(\mathbf{a}_{m}-\widehat{\mathbf{b}}_{\mathbf{a}}-\widetilde{\mathbf{b}}_{\mathbf{a}}-\mathbf{n}_{\mathrm{a}}\right)+{}^{G}\mathbf{g}\\
+        \mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}\\\mathbf{n}_{\mathbf{b}_{\mathbf{a}}}\\
+        \mathbf{0}_{3\times1}\end{bmatrix}\Delta t\label{eq:expression_g}
+    \end{align}
+Then
+\[
+\left.\frac{\partial \mathbf{g}(\widetilde{\mathbf{x}},\mathbf{0})}{\partial\widetilde{\mathbf{x}}}\right|_{\widetilde{\mathbf{x}}=\mathbf{0}}=\begin{pmatrix}\mathbf{0}&\mathbf{0}&\mathbf{0}&-\mathbf{I}_{3\times3}\Delta t&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{I}_{3\times3}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\-{}^G\mathbf{\widehat{R}}_I\lfloor\mathbf{a}_m-\mathbf{\widehat{b}_a}\rfloor_\wedge\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}&-{}^G\mathbf{\widehat{R}}_I\Delta t&\mathbf{I}_{3\times3}\Delta t\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\end{pmatrix}
+\]
+Multiply the above equation with \eqref{eq:partialGpartialg} and add \eqref{eq:partialGpartialx}, we get $\mathbf{F}_{\mathbf{\widetilde{x}}}$.
+
+From \eqref{eq:expression_g}, we also have
+\[\left.\frac{\partial \mathbf{g}(\mathbf{0},\mathbf{w})}{\partial \mathbf{w}}\right|_{\mathbf{w}=\mathbf{0}}=\begin{pmatrix}-\mathbf{I}_{3\times3}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&-{}^G\mathbf{\widehat{R}}_I\Delta t&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{I}_{3\times3}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}_{3\times3}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\end{pmatrix}\]
+
+Then multiply the above equation with \eqref{eq:partialGpartialg}, we obtain the expression for $\mathbf{F}_{\mathbf{w}}$.

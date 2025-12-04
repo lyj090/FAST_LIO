@@ -26,24 +26,24 @@ To address the above challenges, this project reproduces and analyzes the core e
 
     \item \textbf{Motion Distortion Compensation}: Implement a formal \textit{backward propagation} mechanism that, using IMU preintegration from the scan-end time, reconstructs the relative pose at each LiDAR point’s timestamp. This enables precise motion undistortion of the entire scan, resolving the \textit{motion distortion} problem at the measurement level.
 
-    \item \textbf{Efficient Kalman Update}: Derive and implement the reformulated Kalman gain based on the \textit{Woodbury matrix identity}:
+    \item \textbf{Efficient Kalman Update}: Based on the \textit{Woodbury matrix identity}, the reformulated Kalman gain can be expressed as
     \[
-    \mathbf{K} = (\mathbf{H}^\top \mathbf{R}^{-1} \mathbf{H} + \mathbf{P}^{-1})^{-1} \mathbf{H}^\top \mathbf{R}^{-1},
+    \mathbf{K} = (\mathbf{H}^T \mathbf{R}^{-1} \mathbf{H} + \mathbf{P}^{-1})^{-1} \mathbf{H}^T \mathbf{R}^{-1},
     \]
     which reduces matrix inversion from $\mathcal{O}(m^3)$ to $\mathcal{O}(n^3)$ (with $n = \dim(\text{state}) \ll m$), directly tackling the \textit{computational bottleneck}.
 \end{itemize}
 
-We evaluate the implemented algorithm through Python-based simulations and experiments on the public M3DGR dataset~\cite{m3dgr}, assessing performance in terms of estimation accuracy (RMSE), computational latency, and robustness, and validating these results against theoretical analysis.
+We evaluate the implemented algorithm through ROS-based simulations and experiments on the public M3DGR dataset~\cite{m3dgr}, assessing performance in terms of estimation accuracy, computational latency, and robustness, and validating these results against theoretical analysis.
 
 \subsection{Organization}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{media/workflow.png}
+    \includegraphics[width=1\linewidth]{media/workflow.pdf}
     \caption{Overview of the FAST-LIO estimation framework with IMU-LiDAR tight coupling, motion undistortion, and efficient Kalman update.}
     \label{fig:workflow}
 \end{figure}
 
-According to the workflow of the FAST-LIO framework~\ref{fig:workflow}, the remainder of this report is organized as follows: 
+According to the workflow of the FAST-LIO framework (Figure \ref{fig:workflow}), the remainder of this report is organized as follows: 
 Section~\ref{sec:modeling} formally defines the state-space model of the IMU-LiDAR system; 
 Section~\ref{sec:iekf} details the IEKF algorithm, including forward/backward propagation, residual computation, and iterative update; 
 Section~\ref{sec:implementation} describes the simulation setup and implementation; 
