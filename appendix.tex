@@ -31,20 +31,24 @@ and
 \[\mathbf{F}_{\mathbf{w}}=\left(\frac{\partial \mathbf{G}(\mathbf{0},\mathbf{g}(\mathbf{0},\mathbf{w}_{i}))}{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}\frac{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}{\partial \mathbf{w}_{i}}\right)|_{\mathbf{w}_{i}=\mathbf{0}}\]
 
 To obtain the partial derivatives, we express $\mathbf{G}$ as follows
-\[
-\mathbf{G}=\left((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}\right)\boxminus \mathbf{d}
-\]
+\begin{equation}
+    \mathbf{G}=\left((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}\right)\boxminus \mathbf{d}\label{G_abcd}
+\end{equation}
 where $\mathbf{G},\mathbf{b},\mathbf{c}\in\mathbb{R}^{18},\mathbf{a},\mathbf{d}\in SO(3)\times\mathbb{R}^{15}$.
 
-There are two cases:
+\begin{lemma}\label{lemma:partial}
+    For \eqref{G_abcd}, devide it into blocks and there are two cases:
 
-{\bf Case 1}: $\mathbf{a},\mathbf{b},\mathbf{c},\mathbf{d}\in\mathbb{R}^n,\quad\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{I}_n$. This case is trivial, since the $\boxplus$ / $\boxminus$ operation on $\mathbb{R}^{n}$ are simply the general element-wise addition / subtraction.
+    {\bf Case 1}: If $\mathbf{a},\mathbf{b},\mathbf{c},\mathbf{d}\in\mathbb{R}^n$, \[\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{I}_n.\] 
 
-{\bf Case 2}: $\mathbf{G},\mathbf{b},\mathbf{c}\in\mathbb{R}^{3},\mathbf{a},\mathbf{d}\in SO(3)$. In this case we have\[\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\mathbf{A}(\mathbf{G})^{-T}\mathrm{Exp}(-\mathbf{c})\mathbf{A}(\mathbf{b})^{T},\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{A}(\mathbf{G})^{-T}\mathbf{A}(\mathbf{c})^{T}\]
-where $\mathbf{A}(\cdot)$ is shown in \eqref{eq:attitude_matrix_inverse}.
+    {\bf Case 2}: If $\mathbf{G},\mathbf{b},\mathbf{c}\in\mathbb{R}^{3},\mathbf{a},\mathbf{d}\in SO(3)$, \[\frac{\partial \mathbf{G}}{\partial \mathbf{b}}=\mathbf{A}(\mathbf{G})^{-T}\mathrm{Exp}(-\mathbf{c})\mathbf{A}(\mathbf{b})^{T},\frac{\partial \mathbf{G}}{\partial \mathbf{c}}=\mathbf{A}(\mathbf{G})^{-T}\mathbf{A}(\mathbf{c})^{T}\]
+    where $\mathbf{A}(\cdot)^{-1}$ is shown in \eqref{eq:attitude_matrix_inverse}.
+\end{lemma}
 
-\begin{proof}[Proof of Case 2]
-    Since $\mathbf{G}=((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c})\boxminus \mathbf{d} =\mathrm{Log}(\mathbf{d}^{-1}\cdot((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}))$, we have 
+\begin{proof}
+    Case 1 is trivial, since the $\boxplus$ / $\boxminus$ operation on $\mathbb{R}^{n}$ are simply the general element-wise addition / subtraction.
+
+    For Case 2, since $\mathbf{G}=((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c})\boxminus \mathbf{d} =\mathrm{Log}(\mathbf{d}^{-1}\cdot((\mathbf{a}\boxplus \mathbf{b})\boxplus \mathbf{c}))$, we have 
     \[\mathrm{Exp}(\mathbf{G})=\mathbf{d}^{-1}\cdot \mathbf{a}\cdot \mathrm{Exp}(\mathbf{b})\cdot \mathrm{Exp}(\mathbf{c}).\]
     Add perbutation to both sides and we have
     \[
@@ -85,9 +89,9 @@ where $\mathbf{A}(\cdot)$ is shown in \eqref{eq:attitude_matrix_inverse}.
     \]
 \end{proof}
 
-Then (Noticing that $\mathbf{A}(\mathbf{0})=\mathbf{I}$)
+With the above lemma (Noticing that $\mathbf{A}(\mathbf{0})=\mathbf{I}$; here we omit the index $i$ for simplicity)
 \begin{align}
-    \frac{\partial\mathbf{G}(\widetilde{\mathbf{x}}_{i},\mathbf{g}(\mathbf{0},\mathbf{0}))}{\partial\widetilde{\mathbf{x}}_{i}} |_{\mathbf{\widetilde{x}}_i=\mathbf{0}}
+    \frac{\partial\mathbf{G}(\widetilde{\mathbf{x}},\mathbf{g}(\mathbf{0},\mathbf{0}))}{\partial\widetilde{\mathbf{x}}} |_{\mathbf{\widetilde{x}}_i=\mathbf{0}}
     &= \begin{bmatrix}
    \mathbf{A}(\mathbf{0})^{-T}\mathrm{Exp}(-\mathbf{g}(\mathbf{0},\mathbf{0}))\mathbf{A}(\mathbf{0})^{T} & \mathbf{0}\\
    \mathbf{0} & \mathbf{I}_{15\times 15}
@@ -98,13 +102,13 @@ Then (Noticing that $\mathbf{A}(\mathbf{0})=\mathbf{I}$)
 \end{align}
 and
 \begin{align}
-    \frac{\partial \mathbf{G}(\mathbf{0},\mathbf{g}(\mathbf{0},\mathbf{w}_{i}))}{\partial \mathbf{g}(\mathbf{0},\mathbf{w}_{i})}|_{\mathbf{w}_i=\mathbf{0}} = \frac{\partial\mathbf{G}(\mathbf{0},\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0}))}{\partial\mathbf{g}(\widetilde{\mathbf{x}}_{i},\mathbf{0})}|_{\mathbf{\widetilde{x}}_i=\mathbf{0}} &=
+    \frac{\partial \mathbf{G}(\mathbf{0},\mathbf{g}(\mathbf{0},\mathbf{w}))}{\partial \mathbf{g}(\mathbf{0},\mathbf{w})}|_{\mathbf{w}=\mathbf{0}} = \frac{\partial\mathbf{G}(\mathbf{0},\mathbf{g}(\widetilde{\mathbf{x}},\mathbf{0}))}{\partial\mathbf{g}(\widetilde{\mathbf{x}},\mathbf{0})}|_{\mathbf{\widetilde{x}}=\mathbf{0}} &=
     \begin{bmatrix}\mathbf{A(0)}^{-T}\mathbf{A(g(0,0))}^T&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}\nonumber\\
     &=\begin{bmatrix}\mathbf{A}((\boldsymbol{\omega}_{m}-\mathbf{\widehat{b}}_{\boldsymbol{\omega}})\Delta{t})&\mathbf{0}\\\mathbf{0}&\mathbf{I}_{15\times15}\end{bmatrix}
     \label{eq:partialGpartialg}
 \end{align}
 
-Use the discrete dynamics in \eqref{eq:discrete_dynamics}, we have (here we omit the index $i$ for simplicity)
+Use the discrete dynamics in \eqref{eq:discrete_dynamics}, we have 
 \begin{align}
     \mathbf{g}\left(\widetilde{\mathbf{x}},\mathbf{w}\right)
     &=\mathbf{f}\left(\mathbf{x},\mathbf{u},\mathbf{w}\right)\Delta t=\begin{bmatrix}\boldsymbol{\omega}_{m}-\mathbf{b}_{\boldsymbol{\omega}}-\mathbf{n}_{\boldsymbol{\omega}}\\{}^G{\mathbf{v}_{I}}\\{}^G\mathbf{R}_{I}\left(\mathbf{a}_{m}-\mathbf{b}_{\mathbf{a}}-\mathbf{n}_{\mathbf{a}}\right)+{}^{G}\mathbf{g}\\\mathbf{n}_{\mathbf{b}_{\boldsymbol{\omega}}}\\\mathbf{n}_{\mathbf{b}_{\mathbf{a}}}\\\mathbf{0}_{3\times1}\end{bmatrix}\Delta t\nonumber\\
@@ -123,5 +127,4 @@ Multiply the above equation with \eqref{eq:partialGpartialg} and add \eqref{eq:p
 
 From \eqref{eq:expression_g}, we also have
 \[\left.\frac{\partial \mathbf{g}(\mathbf{0},\mathbf{w})}{\partial \mathbf{w}}\right|_{\mathbf{w}=\mathbf{0}}=\begin{pmatrix}-\mathbf{I}_{3\times3}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&-{}^G\mathbf{\widehat{R}}_I\Delta t&\mathbf{0}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{I}_{3\times3}&\mathbf{0}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}_{3\times3}\\\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\end{pmatrix}\]
-
 Then multiply the above equation with \eqref{eq:partialGpartialg}, we obtain the expression for $\mathbf{F}_{\mathbf{w}}$.

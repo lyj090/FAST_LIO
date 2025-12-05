@@ -22,7 +22,7 @@ The task is real-time 6-DoF pose estimation of a mobile robot (e.g., UAV or grou
         \mathbf{x} = \left[ {}^G\mathbf{R}_I^T, {}^G\mathbf{p}_I^T, {}^G\mathbf{v}_I^T, \mathbf{b}_{\boldsymbol{\omega}}^T, \mathbf{b}_{\mathbf{a}}^T, {}^G\mathbf{g}^T \right]^T.
     \end{equation}
 
-    \item \textbf{Input $\mathbf{u}_k$}: Raw IMU measurements at time $k$:
+    \item \textbf{Input $\mathbf{u}_i$}: Raw IMU measurements at time $\tau_i$:
     \begin{itemize}
         \item Angular velocity: $\boldsymbol{\omega}_m = \boldsymbol{\omega}_I + \mathbf{b}_{\boldsymbol{\omega}} + \mathbf{n}_{\boldsymbol{\omega}}$;
         \item Specific force: $\mathbf{a}_m = \mathbf{a}_I + \mathbf{b}_{\mathbf{a}} + \mathbf{n}_{\mathbf{a}}$,
@@ -124,7 +124,7 @@ where:
     \item $\mathbf{G}_j = 
     \begin{cases}
         \mathbf{u}_j^T & \text{(plane feature)} \\
-        [\mathbf{u}_j]_\times & \text{(edge feature)}
+        \lfloor\mathbf{u}_j\rfloor_\wedge & \text{(edge feature)}
     \end{cases}$, with $\mathbf{u}_j$ the normal or direction vector;
     \item $\mathbf{v}_j \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_j)$ is the measurement noise that comes from the raw geometric noise $\mathbf{n}_{f_j}$.
 \end{itemize}

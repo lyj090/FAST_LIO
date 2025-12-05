@@ -37,16 +37,16 @@ where $\Delta t = \tau_{i+1} - \tau_i$. To propagate the covariance, we use the 
 
 The matrix $\mathbf{F}_{\widetilde{\mathbf{x}}}$ and $\mathbf{F}_{\mathbf{w}}$ in \eqref{eq:error_dynamics_lin} is computed following Appendix~\ref{appendix:derivation}.
 \begin{equation}
-    \begin{gathered}
-        \mathbf{F}_{\mathbf{x}}=
+    \begin{aligned}
+        \mathbf{F}_{\widetilde{\mathbf{x}}}&=
         \begin{bmatrix}
             \mathrm{Exp}\left(-\widehat{\boldsymbol{\omega}}_{i}\Delta t\right)&\mathbf{0}&\mathbf{0}&-\mathbf{A}(\widehat{\boldsymbol{\omega}}_{i}\Delta t)^{T}\Delta t&\mathbf{0}&\mathbf{0}\\
-            \mathbf{0}&\mathbf{I}&\mathbf{I}\Delta t&\mathbf{0}&\mathbf{0}\\
+            \mathbf{0}&\mathbf{I}&\mathbf{I}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\
             -^{G}\widehat{\mathbf{R}}_{I_{i}}\lfloor\widehat{\mathbf{a}}_{i}\rfloor_{\wedge}\Delta t&\mathbf{0}&\mathbf{I}&\mathbf{0}&-^{G}\widehat{\mathbf{R}}_{I_{i}}\Delta t&\mathbf{I}\Delta t\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}&\mathbf{0}&\mathbf{0}\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}&\mathbf{0}\\
-            \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathrm{I}\end{bmatrix},\\
-        \mathbf{F}_{\mathbf{w}}=
+            \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}\end{bmatrix},\\
+        \mathbf{F}_{\mathbf{w}}&=
         \begin{bmatrix}
             -\mathbf{A}\left(\widehat{\boldsymbol{\omega}}_{i}\Delta t\right)^{T}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&-^{G}\widehat{\mathbf{R}}_{I_{i}}\Delta t&\mathbf{0}&\mathbf{0}\\
@@ -54,12 +54,12 @@ The matrix $\mathbf{F}_{\widetilde{\mathbf{x}}}$ and $\mathbf{F}_{\mathbf{w}}$ i
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}\Delta t\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\end{bmatrix}
     \label{eq:linearized_matrices}
-    \end{gathered}
+    \end{aligned}
 \end{equation}
-The result is shown in \eqref{eq:linearized_matrices}, where $\widetilde{\boldsymbol{\omega}}_i = \boldsymbol{\omega}_{m_i} - \widehat{\mathbf{b}}_{\omega_i}$, $\widetilde{\mathbf{a}}_i = \mathbf{a}_{m_i} - \widehat{\mathbf{b}}_{a_i}$, and $\mathbf{A}(\mathbf{u})^{-1}$ follows the same definition in \cite{Bullo_Murray_1995} as below:
+The result is shown in \eqref{eq:linearized_matrices}, where $\widehat{\boldsymbol{\omega}}_i = \boldsymbol{\omega}_{m_i} - \widehat{\mathbf{b}}_{\boldsymbol{\omega}_i}$, $\widehat{\mathbf{a}}_i = \mathbf{a}_{m_i} - \widehat{\mathbf{b}}_{\mathbf{a}_i}$, and $\mathbf{A}(\mathbf{u})^{-1}$ follows the same definition in \cite{Bullo_Murray_1995} as below:
 \begin{equation}
     \begin{split}
-        \mathbf{A}(\mathbf{u})^{-1} = \mathbf{I} - \frac{1}{2} [\mathbf{u}]_\wedge + \left(1 - \alpha(\|\mathbf{u}\|)\right) \frac{\mathbf{u}\mathbf{u}^T}{\|\mathbf{u}\|^2},\\
+        \mathbf{A}(\mathbf{u})^{-1} = \mathbf{I} - \frac{1}{2} \lfloor\mathbf{u}\rfloor_\wedge + \left(1 - \alpha(\|\mathbf{u}\|)\right) \frac{\lfloor\mathbf{u}\rfloor_\wedge^2}{\|\mathbf{u}\|^2},\\
         \alpha(m) = \frac{m}{2} \cot\left(\frac{m}{2}\right) = \frac{m}{2} \frac{\cos(m/2)}{\sin(m/2)}.
     \end{split}
     \label{eq:attitude_matrix_inverse}
@@ -81,20 +81,20 @@ When the points accumulation time interval is reached at time $t_k$, the new sca
 
 To compensate for the relative motion (i.e., motion distortion) between time $\rho_j$ and time $t_k$, we propagate \eqref{eq:discrete_state} backward as:
 \[
-    \widetilde{\mathbf{x}}_{j-1} = \widetilde{\mathbf{x}}_j \boxplus (-\Delta t \mathbf{f}(\widetilde{\mathbf{x}}_j, \mathbf{u}_j, \mathbf{0})),
+    \check{\mathbf{x}}_{j-1} = \check{\mathbf{x}}_j \boxplus (-\Delta t \mathbf{f}(\check{\mathbf{x}}_j, \mathbf{u}_j, \mathbf{0})),
 \]
 starting from zero pose and rests states (e.g., velocity and bias) from $\widehat{\mathbf{x}}_k$. The backward propagation is performed at the frequency of feature point, which is usually much higher than the IMU rate. For all the feature points sampled between two IMU measurements, we use the left IMU measurement as the input in the back propagation. Furthermore, noticing that the last three block elements (corresponding to the gyro bias, accelerometer bias, and extrinsic) of $\mathbf{f}(\mathbf{x}_j, \mathbf{u}_j, \mathbf{0})$ (see \eqref{eq:discrete_dynamics}) are zeros, the back propagation can be reduced to:
 \begin{equation}
     \begin{aligned}
         {}^{I_k}\check{\mathbf{p}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{p}}_{I_j} - {}^{I_k}\check{\mathbf{v}}_{I_j} \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{p}}_{I_m} &= \mathbf{0}; \\
-        {}^{I_k}\check{\mathbf{v}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{v}}_{I_j} - {}^{I_k}\check{\mathbf{R}}_{I_j} (\mathbf{a}_{m_{i-1}} - \widehat{\mathbf{b}}_{a_i}) \Delta t - {}^{I_k}\check{\mathbf{g}}_k \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{v}}_{I_m} &= {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{v}}_{I_k}, \quad {}^{I_k}\check{\mathbf{g}}_k = {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{g}}_k; \\
-        {}^{I_k}\check{\mathbf{R}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{R}}_{I_j} \mathrm{Exp}((\widehat{\mathbf{b}}_{\omega_k} - \boldsymbol{\omega}_{m_{i-1}}) \Delta t), & \text{s.f. } {}^{I_k}\check{\mathbf{R}}_{I_m} &= \mathbf{I}.
+        {}^{I_k}\check{\mathbf{v}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{v}}_{I_j} - {}^{I_k}\check{\mathbf{R}}_{I_j} (\mathbf{a}_{m_{i-1}} - \widehat{\mathbf{b}}_{{\mathbf{a}}_k}) \Delta t - {}^{I_k}\hat{\mathbf{g}}_k \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{v}}_{I_m} &= {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{v}}_{I_k}, \quad {}^{I_k}\check{\mathbf{g}}_k = {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{g}}_k; \\
+        {}^{I_k}\check{\mathbf{R}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{R}}_{I_j} \mathrm{Exp}((\widehat{\mathbf{b}}_{\boldsymbol{\omega}_k} - \boldsymbol{\omega}_{m_{i-1}}) \Delta t), & \text{s.f. } {}^{I_k}\check{\mathbf{R}}_{I_m} &= \mathbf{I}.
     \end{aligned}
     \label{eq:backward_propagation}
 \end{equation}
 where $\rho_{j-1} \in [\tau_{i-1}, \tau_i)$, $\Delta t = \rho_j - \rho_{j-1}$, and s.f. means “starting from”.
 
-The backward propagation will produce a relative pose between time $\rho_j$ and the scan-end time $t_k$: ${}^{I_k}\check{\mathbf{T}}_{I_j} = \begin{bmatrix} {}^{I_k}\check{\mathbf{R}}_{I_j} & {}^{I_k}\check{\mathbf{p}}_{I_j} \end{bmatrix}$. This relative pose enables us to project the local measurement ${}^{L_j}\mathbf{p}_{f_j}$ to scan-end measurement ${}^{L_k}\mathbf{p}_{f_j}$ as follows 
+The backward propagation will produce a relative pose between time $\rho_j$ and the scan-end time $t_k$: ${}^{I_k}\check{\mathbf{T}}_{I_j} = ( {}^{I_k}\check{\mathbf{R}}_{I_j} , {}^{I_k}\check{\mathbf{p}}_{I_j} )$. This relative pose enables us to project the local measurement ${}^{L_j}\mathbf{p}_{f_j}$ to scan-end measurement ${}^{L_k}\mathbf{p}_{f_j}$ as follows 
 (see Fig.~\ref{fig:forward_propagation}):
 \begin{equation}
     {}^{L_k}\mathbf{p}_{f_j} = {}^{I}\mathbf{T}_L^{-1} {}^{I_k}\check{\mathbf{T}}_{I_j} {}^{I}\mathbf{T}_L {}^{L_j}\mathbf{p}_{f_j}.
@@ -105,53 +105,51 @@ where ${}^{I}\mathbf{T}_L$ is the known extrinsic (see Section~\ref{subsec:syste
 \subsection{Residual computation}
 \label{subsec:residual_computation}
 
-With the motion compensation in \eqref{eq:scan_end_projection}, we can view the scan of feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$, all sampled at the same time $t_k$, and use it to construct the residual. Assume the current iteration of the iterated Kalman filter is $\kappa$, and the corresponding state estimate is $\widehat{\mathbf{x}}_k^\kappa$. When $\kappa = 0$, $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, the predicted state from the propagation in \eqref{eq:forward_propagation}. Then, the feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ can be transformed to the global frame as follows:
-
+With the motion compensation in \eqref{eq:scan_end_projection}, we can view the scan of feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ all sampled at the same time $t_k$, and use it to construct the residual. Assume the current iteration of the iterated Kalman filter is $\kappa$, and the corresponding state estimate is $\widehat{\mathbf{x}}_k^\kappa$. When $\kappa = 0$, $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, the predicted state from the propagation in \eqref{eq:forward_propagation}. Then, the feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ can be transformed to the global frame as follows:
 \begin{equation}
     {}^G\widehat{\mathbf{p}}_{f_j}^\kappa = {}^G\widehat{\mathbf{T}}_{I_k}^{\kappa} {}^I\mathbf{T}_L {}^{L_k}\mathbf{p}_{f_j}; \quad j = 1, \cdots, m.
     \label{eq:global_projection}
 \end{equation}
 
 For each LiDAR feature point, the closest plane or edge defined by its nearby feature points in the map is assumed to be where the point truly belongs to. The residual is defined as the distance between the feature point's estimated global frame coordinate ${}^G\widehat{\mathbf{p}}_{f_j}^\kappa$ and the nearest plane (or edge) in the map. Denoting $\mathbf{u}_j$ the normal vector (or edge orientation) of the corresponding plane (or edge), on which lying a point ${}^G\mathbf{q}_j$, then the residual $\mathbf{z}_j^\kappa$ is computed as:
-
 \begin{equation}
     \mathbf{z}_j^\kappa = \mathbf{G}_j \left( {}^G\widehat{\mathbf{p}}_{f_j}^\kappa - {}^G\mathbf{q}_j \right)
     \label{eq:residual}
 \end{equation}
-
-where $\mathbf{G}_j = \mathbf{u}_j^T$ for planar features and $\mathbf{G}_j = [\mathbf{u}_j]_\times$ for edge features. The computation of the $\mathbf{u}_j$ and the search of nearby points in the map, which define the corresponding plane or edge, is achieved by building a KD-tree of the points in the most recent map \cite{lin2020loam}. 
+where $\mathbf{G}_j = \mathbf{u}_j^T$ for planar features and $\mathbf{G}_j = \lfloor\mathbf{u}_j\rfloor_\wedge$ for edge features. The computation of the $\mathbf{u}_j$ and the search of nearby points in the map, which define the corresponding plane or edge, is achieved by building a KD-tree of the points in the most recent map \cite{lin2020loam}. 
 
 \subsection{Iterated State Update}
 \label{subsec:iterated_update}
 
 To fuse the residual $\mathbf{z}_j^\kappa$ computed in \eqref{eq:residual} with the state prediction $\widehat{\mathbf{x}}_k$ and covariance $\widehat{\mathbf{P}}_k$ propagated from the IMU data, we need to linearize the measurement model that relates the residual $\mathbf{z}_j^\kappa$ to the ground-truth state $\mathbf{x}_k$ and measurement noise. The measurement noise originates from the LiDAR ranging and beam-directing noise ${}^{L_j}\mathbf{n}_{f_j}$ when measuring the point ${}^{L_j}\mathbf{p}_{f_j}$. Removing this noise from the point measurement ${}^{L_j}\mathbf{p}_{f_j}$ leads to the true point location:
-
 \begin{equation}
     {}^{L_j}\mathbf{p}_{f_j}^{\text{gt}} = {}^{L_j}\mathbf{p}_{f_j} - {}^{L_j}\mathbf{n}_{f_j}.
     \label{eq:true_point}
 \end{equation}
-
 This true point, after projecting to the frame $L_k$ via \eqref{eq:scan_end_projection} and then to the global frame with the ground-truth state $\mathbf{x}_k$ (i.e., pose), should lie exactly on the plane (or edge) in the map. That is, plugging \eqref{eq:true_point} into \eqref{eq:scan_end_projection}, then into \eqref{eq:global_projection}, and further into \eqref{eq:residual} should result in zero, i.e.,
-
 \begin{equation}
-    \mathbf{0} = \mathbf{h}_j(\mathbf{x}_k, {}^{L_j}\mathbf{n}_{f_j}) = \mathbf{G}_j \left( {}^G\mathbf{T}_{I_k}^\kappa {}^I\mathbf{T}_L {}^{L_k}\mathbf{T}_{L_j} ({}^{L_j}\mathbf{p}_{f_j} - {}^{L_j}\mathbf{n}_{f_j}) - {}^G\mathbf{q}_j \right).
+    \mathbf{0} = \mathbf{h}_j(\mathbf{x}_k, {}^{L_j}\mathbf{n}_{f_j}) = \mathbf{G}_j \left( {}^G\mathbf{T}_{I_k} {}^I\mathbf{T}_L {}^{L_k}\mathbf{T}_{L_j} ({}^{L_j}\mathbf{p}_{f_j} - {}^{L_j}\mathbf{n}_{f_j}) - {}^G\mathbf{q}_j \right).
     \label{eq:zero_residual}
 \end{equation}
 
-Now,we find out the relation between the state $\widehat{\mathbf{x}}_k^\kappa$ and the residual $\mathbf{z}_j^\kappa$.
-Note that the $\mathbf{h}_j$ is nonlinear with respect to the state $\mathbf{x}_k$,then we can approximate the above equation by its first-order Taylor expansion made at $\widehat{\mathbf{x}}_k^\kappa$ :
-
+Now we find out the relation between the state $\widehat{\mathbf{x}}_k^\kappa$ and the residual $\mathbf{z}_j^\kappa$.
+Note that the $\mathbf{h}_j$ is nonlinear with respect to the state $\mathbf{x}_k$,then we can approximate the above equation by its first-order Taylor expansion made at $\widehat{\mathbf{x}}_k^\kappa$:
 \begin{align}
-    \mathbf{0} &= \mathbf{h}_j \left( \mathbf{x}_k, {}^{L_j}\mathbf{n}_{f_j} \right) \simeq \mathbf{h}_j \left( \widehat{\mathbf{x}}_k^\kappa, \mathbf{0} \right) + \mathbf{H}_j^\kappa \widetilde{\mathbf{x}}_k^\kappa + \mathbf{v}_j \nonumber \\
+    \mathbf{0} &= \mathbf{h}_j \left( \mathbf{x}_k, {}^{L_j}\mathbf{n}_{f_j} \right) \nonumber \\
+    &\simeq \mathbf{h}_j \left( \widehat{\mathbf{x}}_k^\kappa, \mathbf{0} \right) + \mathbf{H}_j^\kappa \widetilde{\mathbf{x}}_k^\kappa + \mathbf{v}_j \nonumber \\
     &= \mathbf{z}_j^\kappa + \mathbf{H}_j^\kappa \widetilde{\mathbf{x}}_k^\kappa + \mathbf{v}_j,
     \label{eq:linearized_measurement}
 \end{align}
-
 where $\widetilde{\mathbf{x}}_k^\kappa = \mathbf{x}_k \boxminus \widehat{\mathbf{x}}_k^\kappa$ is the error state, $\mathbf{H}_j^\kappa$ is the Jacobian matrix of $\mathbf{h}_j(\widehat{\mathbf{x}}_k^\kappa \boxplus \widetilde{\mathbf{x}}_k^\kappa, {}^{L_j}\mathbf{n}_{f_j})$ with respect to $\widetilde{\mathbf{x}}_k^\kappa$, evaluated at zero, and $\mathbf{v}_j \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_j)$ comes from the raw measurement noise ${}^{L_j}\mathbf{n}_{f_j}$.
+
+The expression of $\mathbf{H}_j^\kappa$ (for planar feature points) is as below:
+\begin{equation}
+    \mathbf{H}_j^\kappa=\frac{\partial \mathbf{H}_j^\kappa}{\partial \mathbf{p}_j}\frac{\partial \mathbf{p}_j}{\partial \mathbf{\widetilde{x}}_j^\kappa}=[-{\mathbf{u}_j}{}^G\hat{\mathbf{R}}_I^\kappa\lfloor^I\mathbf{T}_L{}^L\mathbf{p}\rfloor_\wedge,\mathbf{u}_j,\boldsymbol{0},\boldsymbol{0},\boldsymbol{0},\boldsymbol{0}]
+\end{equation}
 
 Notice that the prior distribution of $\mathbf{x}_k$ obtained from the forward propagation in Section~\ref{subsec:forward_propagation} is for:
 \begin{equation}
-    \mathbf{x}_k \boxminus \widehat{\mathbf{x}}_k = (\widetilde{\mathbf{x}}_k^\kappa \boxplus \widehat{\mathbf{x}}_k^\kappa) \boxminus \widehat{\mathbf{x}}_k = \widetilde{\mathbf{x}}_k^\kappa \boxplus (\widehat{\mathbf{x}}_k^\kappa \boxminus \widehat{\mathbf{x}}_k) = \widetilde{\mathbf{x}}_k^\kappa + \mathbf{J}^\kappa \widetilde{\mathbf{x}}_k^\kappa,
+    \mathbf{x}_k \boxminus \widehat{\mathbf{x}}_k = (\widehat{\mathbf{x}}_k^\kappa \boxplus \widetilde{\mathbf{x}}_k^\kappa) \boxminus \widehat{\mathbf{x}}_k = \widetilde{\mathbf{x}}_k^\kappa \boxplus (\widehat{\mathbf{x}}_k^\kappa \boxminus \widehat{\mathbf{x}}_k) = \widetilde{\mathbf{x}}_k^\kappa + \mathbf{J}^\kappa \widetilde{\mathbf{x}}_k^\kappa,
     \label{eq:prior_error}
 \end{equation}
 where $\mathbf{J}^\kappa$ is the partial differentiation of $(\widehat{\mathbf{x}}_k^\kappa \boxplus \widetilde{\mathbf{x}}_k^\kappa) \boxminus \widehat{\mathbf{x}}_k$ with respect to $\widetilde{\mathbf{x}}_k^\kappa$ evaluated at zero:
@@ -163,15 +161,14 @@ where $\mathbf{J}^\kappa$ is the partial differentiation of $(\widehat{\mathbf{x
     \end{bmatrix},
     \label{eq:jacobian_J}
 \end{equation}
-and $\mathbf{A}(\cdot)^{-1}$ is defined in \eqref{eq:attitude_matrix_inverse}. $\mathbf{J}^\kappa$ can be obtained using the conclusion in Appendix \ref{appendix:derivation}. For the first iteration (i.e., the case of extended Kalman filter), $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, then $\mathbf{J}^\kappa = \mathbf{I}$.
+and $\mathbf{A}(\cdot)^{-1}$ is defined in \eqref{eq:attitude_matrix_inverse}. $\mathbf{J}^\kappa$ can be obtained using Lemma \ref{lemma:partial} in Appendix \ref{appendix:derivation}. For the first iteration (i.e., the case of extended Kalman filter), $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, then $\mathbf{J}^\kappa = \mathbf{I}$.
 
 Combining the prior in \eqref{eq:prior_error} with the posteriori distribution from \eqref{eq:linearized_measurement} yields the maximum a-posteriori estimate (MAP):
 \begin{equation}
     \min_{\widetilde{\mathbf{x}}_k^\kappa} \left( \| \mathbf{x}_k \boxminus \widehat{\mathbf{x}}_k \|_{\widehat{\mathbf{P}}_k^{-1}}^2 + \sum_{j=1}^{m} \| \mathbf{z}_j^\kappa + \mathbf{H}_j^\kappa \widetilde{\mathbf{x}}_k^\kappa \|_{\mathbf{R}_j^{-1}}^2 \right),
     \label{eq:map_estimation}
 \end{equation}
-where $\| \mathbf{x} \|_{\mathbf{M}}^2 = \mathbf{x}^T \mathbf{M} \mathbf{x}$. Substituting the linearization of the prior in \eqref{eq:prior_error} into \eqref{eq:map_estimation} and optimizing the resultant quadratic cost leads to the standard iterated Kalman filter \cite{thrun2005probabilistic}, which can be computed as follows (to simplify the notation, let $\mathbf{H} = [\mathbf{H}_1^{\kappa T}, \cdots, \mathbf{H}_m^{\kappa T}]^T$, $\mathbf{R} = \mathrm{diag}(\mathbf{R}_1, \cdots, \mathbf{R}_m)$, $\mathbf{P} = (\mathbf{J}^\kappa)^{-1} \widehat{\mathbf{P}}_k (\mathbf{J}^\kappa)^{-T}$, and $\mathbf{z}_k^\kappa = [ {\mathbf{z}_1^{\kappa T}}, \cdots, {\mathbf{z}_m^{\kappa T}} ]^T$):
-
+where $\| \mathbf{x} \|_{\mathbf{M}}^2 = \mathbf{x}^T \mathbf{M} \mathbf{x}$. Substituting the linearization of the prior in \eqref{eq:prior_error} into \eqref{eq:map_estimation} and optimizing the resultant quadratic cost leads to the standard iterated Kalman filter \cite{lins}, which can be computed as follows (to simplify the notation, let $\mathbf{H} = [\mathbf{H}_1^{\kappa T}, \dots, \mathbf{H}_m^{\kappa T}]^T$, $\mathbf{R} = \mathrm{diag}(\mathbf{R}_1, \dots, \mathbf{R}_m)$, $\mathbf{P} = (\mathbf{J}^\kappa)^{-1} \widehat{\mathbf{P}}_k (\mathbf{J}^\kappa)^{-T}$, and $\mathbf{z}_k^\kappa = [ {\mathbf{z}_1^{\kappa T}}, \dots, {\mathbf{z}_m^{\kappa T}} ]^T$):
 \begin{equation}
     \mathbf{K} = \mathbf{P} \mathbf{H}^T (\mathbf{H} \mathbf{P} \mathbf{H}^T + \mathbf{R})^{-1},
     \label{eq:kalman_gain_standard}
@@ -191,7 +188,6 @@ The updated estimate $\widehat{\mathbf{x}}_k^{\kappa+1}$ is then used to compute
 A problem with the commonly used Kalman gain form is that it requires to invert the matrix $\mathbf{H}\mathbf{P}\mathbf{H}^T+\mathbf{R}$ which is in the dimension of the measurements. In practice, the number of LiDAR feature points are very large in number. Thus, inverting a matrix of this size is prohibitive.
 
 In fact, if directly solving \eqref{eq:map_estimation}, we can obtain the same solution in \eqref{eq:kalman_gain_standard} but with a new form of Kalman gain shown below:
-
 \begin{equation}
     \mathbf{K} = \left( \mathbf{H}^T \mathbf{R}^{-1} \mathbf{H} + \mathbf{P}^{-1} \right)^{-1} \mathbf{H}^T \mathbf{R}^{-1}.
     \label{eq:new_kalman_gain}
@@ -219,10 +215,10 @@ Now note that $\mathbf{H} \mathbf{P} \mathbf{H}^T \mathbf{R}^{-1} = (\mathbf{H} 
     \label{eq:standard_kalman_gain}
 \end{align}
 
-Since the LiDAR measurements are independent, the covariance matrix $\mathbf{R}$ is (block) diagonal and hence the new formula only requires to invert two matrices both in the dimension of state instead of measurements. The new formula greatly saves the computation as the state dimension is usually much lower than measurements in LIO (e.g., more than 1,000 effective feature points in a scan for 10 Hz scan rate while the state dimension is only 18).
+Since the LiDAR measurements are independent, the covariance matrix $\mathbf{R}$ is (block) diagonal and hence the new formula only requires to invert two matrices both in the dimension of state instead of measurements. The new formula reduces the computational complexity from $\mathcal{O}(m^3)$ to $\mathcal{O}(n^3)$, where $m$ is the number of measurements (feature points) and $n$ is the state dimension ($n=18$ in our case), thus greatly saves the computation as the state dimension is usually much lower than measurements in LIO (e.g., more than 1,000 effective feature points in a scan for 10 Hz scan rate while the state dimension is only 18). This efficiency is critical for real-time operation on resource-constrained platforms. This is proved in experimental section (Section \ref{sec:results}).
 
-This formulation reduces the computational complexity from $\mathcal{O}(m^3)$ to $\mathcal{O}(n^3)$, where $m$ is the number of measurements (feature points) and $n$ is the state dimension ($n=18$ in our case). This efficiency is critical for real-time operation on resource-constrained platforms.This could be proved in experimental section.The state estimation is summarized in Algorithm 1.
-\newpage
+The state estimation is summarized in Algorithm \ref{alg:state_estimation}.
+
 \begin{algorithm}
     \caption{State Estimation}
     \label{alg:state_estimation}
