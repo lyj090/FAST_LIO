@@ -37,8 +37,8 @@ where $\Delta t = \tau_{i+1} - \tau_i$. To propagate the covariance, we use the 
 
 The matrix $\mathbf{F}_{\widetilde{\mathbf{x}}}$ and $\mathbf{F}_{\mathbf{w}}$ in \eqref{eq:error_dynamics_lin} is computed following Appendix~\ref{appendix:derivation}.
 \begin{equation}
-    \begin{gathered}
-        \mathbf{F}_{\widetilde{\mathbf{x}}}=
+    \begin{aligned}
+        \mathbf{F}_{\widetilde{\mathbf{x}}}&=
         \begin{bmatrix}
             \mathrm{Exp}\left(-\widehat{\boldsymbol{\omega}}_{i}\Delta t\right)&\mathbf{0}&\mathbf{0}&-\mathbf{A}(\widehat{\boldsymbol{\omega}}_{i}\Delta t)^{T}\Delta t&\mathbf{0}&\mathbf{0}\\
             \mathbf{0}&\mathbf{I}&\mathbf{I}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\
@@ -46,7 +46,7 @@ The matrix $\mathbf{F}_{\widetilde{\mathbf{x}}}$ and $\mathbf{F}_{\mathbf{w}}$ i
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}&\mathbf{0}&\mathbf{0}\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}&\mathbf{0}\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}\end{bmatrix},\\
-        \mathbf{F}_{\mathbf{w}}=
+        \mathbf{F}_{\mathbf{w}}&=
         \begin{bmatrix}
             -\mathbf{A}\left(\widehat{\boldsymbol{\omega}}_{i}\Delta t\right)^{T}\Delta t&\mathbf{0}&\mathbf{0}&\mathbf{0}\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\\\mathbf{0}&-^{G}\widehat{\mathbf{R}}_{I_{i}}\Delta t&\mathbf{0}&\mathbf{0}\\
@@ -54,7 +54,7 @@ The matrix $\mathbf{F}_{\widetilde{\mathbf{x}}}$ and $\mathbf{F}_{\mathbf{w}}$ i
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{I}\Delta t\\
             \mathbf{0}&\mathbf{0}&\mathbf{0}&\mathbf{0}\end{bmatrix}
     \label{eq:linearized_matrices}
-    \end{gathered}
+    \end{aligned}
 \end{equation}
 The result is shown in \eqref{eq:linearized_matrices}, where $\widehat{\boldsymbol{\omega}}_i = \boldsymbol{\omega}_{m_i} - \widehat{\mathbf{b}}_{\boldsymbol{\omega}_i}$, $\widehat{\mathbf{a}}_i = \mathbf{a}_{m_i} - \widehat{\mathbf{b}}_{\mathbf{a}_i}$, and $\mathbf{A}(\mathbf{u})^{-1}$ follows the same definition in \cite{Bullo_Murray_1995} as below:
 \begin{equation}
@@ -87,8 +87,8 @@ starting from zero pose and rests states (e.g., velocity and bias) from $\wideha
 \begin{equation}
     \begin{aligned}
         {}^{I_k}\check{\mathbf{p}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{p}}_{I_j} - {}^{I_k}\check{\mathbf{v}}_{I_j} \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{p}}_{I_m} &= \mathbf{0}; \\
-        {}^{I_k}\check{\mathbf{v}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{v}}_{I_j} - {}^{I_k}\check{\mathbf{R}}_{I_j} (\mathbf{a}_{m_{i-1}} - \widehat{\mathbf{b}}_{a_i}) \Delta t - {}^{I_k}\hat{\mathbf{g}}_k \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{v}}_{I_m} &= {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{v}}_{I_k}, \quad {}^{I_k}\check{\mathbf{g}}_k = {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{g}}_k; \\
-        {}^{I_k}\check{\mathbf{R}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{R}}_{I_j} \mathrm{Exp}((\widehat{\mathbf{b}}_{\omega_k} - \boldsymbol{\omega}_{m_{i-1}}) \Delta t), & \text{s.f. } {}^{I_k}\check{\mathbf{R}}_{I_m} &= \mathbf{I}.
+        {}^{I_k}\check{\mathbf{v}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{v}}_{I_j} - {}^{I_k}\check{\mathbf{R}}_{I_j} (\mathbf{a}_{m_{i-1}} - \widehat{\mathbf{b}}_{{\mathbf{a}}_k}) \Delta t - {}^{I_k}\hat{\mathbf{g}}_k \Delta t, & \text{s.f. } {}^{I_k}\check{\mathbf{v}}_{I_m} &= {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{v}}_{I_k}, \quad {}^{I_k}\check{\mathbf{g}}_k = {}^{G}\widehat{\mathbf{R}}_{I_k}^T {}^{G}\widehat{\mathbf{g}}_k; \\
+        {}^{I_k}\check{\mathbf{R}}_{I_{j-1}} &= {}^{I_k}\check{\mathbf{R}}_{I_j} \mathrm{Exp}((\widehat{\mathbf{b}}_{\boldsymbol{\omega}_k} - \boldsymbol{\omega}_{m_{i-1}}) \Delta t), & \text{s.f. } {}^{I_k}\check{\mathbf{R}}_{I_m} &= \mathbf{I}.
     \end{aligned}
     \label{eq:backward_propagation}
 \end{equation}
@@ -105,7 +105,7 @@ where ${}^{I}\mathbf{T}_L$ is the known extrinsic (see Section~\ref{subsec:syste
 \subsection{Residual computation}
 \label{subsec:residual_computation}
 
-With the motion compensation in \eqref{eq:scan_end_projection}, we can view the scan of feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$, all sampled at the same time $t_k$, and use it to construct the residual. Assume the current iteration of the iterated Kalman filter is $\kappa$, and the corresponding state estimate is $\widehat{\mathbf{x}}_k^\kappa$. When $\kappa = 0$, $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, the predicted state from the propagation in \eqref{eq:forward_propagation}. Then, the feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ can be transformed to the global frame as follows:
+With the motion compensation in \eqref{eq:scan_end_projection}, we can view the scan of feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ all sampled at the same time $t_k$, and use it to construct the residual. Assume the current iteration of the iterated Kalman filter is $\kappa$, and the corresponding state estimate is $\widehat{\mathbf{x}}_k^\kappa$. When $\kappa = 0$, $\widehat{\mathbf{x}}_k^\kappa = \widehat{\mathbf{x}}_k$, the predicted state from the propagation in \eqref{eq:forward_propagation}. Then, the feature points $\{{}^{L_k}\mathbf{p}_{f_j}\}$ can be transformed to the global frame as follows:
 \begin{equation}
     {}^G\widehat{\mathbf{p}}_{f_j}^\kappa = {}^G\widehat{\mathbf{T}}_{I_k}^{\kappa} {}^I\mathbf{T}_L {}^{L_k}\mathbf{p}_{f_j}; \quad j = 1, \cdots, m.
     \label{eq:global_projection}
