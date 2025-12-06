@@ -1,3 +1,37 @@
 \section{Conclusion}
 \label{sec:conclusion}
-% This project demonstrates the superiority of UKF over EKF in nonlinear state estimation. Future work includes deploying the filter on a ROS-based robot for real-time hand pose estimation, aligning with our research in low-cost robotic perception.
+\subsection{Main Contributions}
+\begin{itemize}
+    \item \textbf{Complete Reproduction of the FAST-LIO Core Workflow}: 
+    
+    Implemented a tightly-coupled state estimation algorithm based on Iterative Extended Kalman Filter (IEKF), including IMU forward propagation, LiDAR point cloud backward propagation for motion distortion compensation, residual construction, and iterative updates.
+    \item \textbf{Validation of Computational Efficiency Optimization}: 
+    
+    Experimentally demonstrated that the new form of Kalman gain based on the Woodbury matrix identity \eqref{eq:new_kalman_gain} reduces computational complexity from $\mathcal{O}(m^3)$ to $\mathcal{O}(n^3)$, enabling real-time processing of over a thousand feature points on resource-constrained platforms (e.g., UAV onboard computers).
+    \item \textbf{Robustness Validation Across Scenarios}: 
+    
+    Achieved sub-meter localization accuracy (RMSE = 0.210 m) in indoor (feature-degraded) and outdoor (high-dynamic) scenarios of the M3DGR dataset, demonstrating strong robustness to lighting changes, geometric degradation, and motion distortion.
+\end{itemize}
+
+\subsection{Algorithm Advantages}
+Compared to traditional loosely-coupled or optimization-based methods, the FAST-LIO framework offers the following significant advantages:
+\begin{itemize}
+    \item \textbf{Enhanced Robustness through Tight Coupling}: Directly integrates raw LiDAR feature points with IMU states, avoiding the degradation issues of loosely-coupled methods caused by feature loss.
+    \item \textbf{Precise Motion Distortion Compensation}: Utilizes a backward propagation mechanism to independently align time and pose for each LiDAR point, significantly improving point cloud geometric consistency.
+    \item \textbf{Real-Time Efficiency}: Thanks to the dimensional optimization of the Kalman gain, the system can stably operate at a frequency of 10 Hz without blocking.
+    \item \textbf{Minimal State Representation}: Defines error states on the Lie group manifold, using minimal parameterization (3 DoF) for attitude uncertainty, enhancing filter stability.
+\end{itemize}
+
+\subsection{Limitations and Future Work}
+Nevertheless, several limitations remain. The method assumes high-frequency, low-noise IMU data; performance may degrade under severe vibration or with low-cost IMUs. Moreover, the absence of loop closure means long-term drift accumulates uncorrected, limiting scalability to large-scale mapping. The feature extraction module, while effective in structured environments, can still fail in textureless or highly repetitive scenes.
+
+Looking ahead, future work could integrate FAST-LIO with a global optimization backend to enable loop closure and map refinement. Another promising direction is the fusion of visual or event-based sensors to enhance robustness in LiDAR-degenerate conditions. Additionally, deploying the system on embedded platforms with hardware-aware acceleration—such as fixed-point arithmetic or sparse matrix optimizations—would further broaden its applicability in real-world robotic systems. Ultimately, this project not only validates the theoretical elegance of FAST-LIO but also underscores the practical viability of tightly-coupled filtering for next-generation autonomous navigation.
+
+\section{Project Management and Division of Work}
+\label{sec:management}
+This project was completed through the collaboration of three members, with specific responsibilities as follows:
+\begin{itemize}
+    \item Junda Wu: Responsible for overall project coordination and compilation of the theoretical section.
+    \item Hongkang Cui: Responsible for experimental design and result analysis.
+    \item Yongjian Liu: Responsible for writing the report documentation.
+\end{itemize}
