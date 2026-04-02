@@ -6,18 +6,10 @@ The entire system is implemented in C++ for point cloud processing.
 
 To ensure experimental reproducibility and environmental isolation, all tests were conducted within a Docker container running Ubuntu 20.04. The M3DGR dataset~\cite{m3dgr} is selected for its benchmark-quality LiDAR-IMU sequences and ground-truth poses from a high-precision RTK system.
 
-We evaluate two key aspects:
-\begin{enumerate}
-    \item \textbf{Estimation accuracy}: Quantified by RMSE (Root Mean Square Error) after SE(3) alignment between the estimated trajectory and ground truth;
-    \item \textbf{Computational efficiency}: Measured by per-scan processing time, comparing the conventional Kalman gain \eqref{eq:kalman_gain_standard} versus the efficient form derived from the Woodbury identity \eqref{eq:new_kalman_gain}.
-\end{enumerate}
-
 To validate the \textit{generality and robustness} of our implementation, we select two representative sequences from M3DGR:
 \begin{itemize}
-    \item \textbf{Bag 1 (indoor)}: 
-    % TODO：Explain
-    \item \textbf{Bag 2 (outdoor)}: 
-    % TODO：Explain
+    \item \textbf{Bag 1 \& 2 (outdoor)}: This scenario represents a common use case in navigation tasks. In this scenario, we primarily measure the deviation from ground truth data and assess computational efficiency. The estimation accuracy is quantified by multiple metrics after SE(3) alignment between the estimated trajectory and ground truth; the computational efficiency is measured by per-scan processing time, comparing the conventional Kalman gain \eqref{eq:kalman_gain_standard} versus the efficient form derived from the Woodbury identity \eqref{eq:new_kalman_gain}.
+    \item \textbf{Bag 3 (corridor)}: This scenario involves a long corridor setup, which is designed to examine the system's adaptability under lidar degradation conditions. This environment allows us to specifically evaluate the accuracy of loop closure performance.
 \end{itemize}
 This cross-scenario design ensures our conclusions are not biased toward a specific environment.
 
@@ -28,35 +20,48 @@ This cross-scenario design ensures our conclusions are not biased toward a speci
 \subsection{Trajectory Accuracy and Error Statistics}
 \label{subsec:accuracy}
 
-We align the estimated trajectory to the ground truth using a global SE(3) transformation that minimizes the RMSE. The error statistics for Bag 1 are summarized in Table~\ref{tab:error_stats}.
+Since the pose estimation and the ground truth correspond to different global frames, we align the estimated trajectory to the ground truth using a global SE(3) transformation that minimizes the RMSE. The error statistics for Bag 1 are summarized in Table~\ref{tab:error_stats}.
 
 \begin{table}[ht]
     \centering
-    \begin{tabular}{lc}
+    \caption{Error statistics of the estimated trajectory.}
+    \label{tab:error_stats}
+    \begin{tabular}{cccccccc}
     \toprule
-    \textbf{Statistic} & \textbf{Value (m)} \\
+    & \textbf{RMSE} & \textbf{Mean} & \textbf{Median} & \textbf{Std. Dev} & \textbf{Min} & \textbf{Max} & \textbf{SSE*}\\
     \midrule
-    \textbf{RMSE} & \textbf{0.210} \\
-    Mean & 0.202 \\
-    Median & 0.195 \\
-    Std. Dev ($\sigma$) & 0.059 \\
-    Min & 0.050 \\
-    Max & 0.364 \\
-    SSE & 271.635 \\
+    Bag 1 & {0.219} & 0.209 & 0.209 & 0.064 & 0.042 & 0.408 & 196.9\\
+    Bag 2 & {0.499} & 0.440 & 0.403 & 0.236 & 0.045 & 1.072 & 1945.0\\
     \bottomrule
     \end{tabular}
-    \caption{Error statistics of the estimated trajectory on Bag 1 (indoor).}
-    \label{tab:error_stats}
+
+    {\footnotesize * SSE denotes the Sum of Squared Errors, i.e., $\mathrm{SSE} = \sum_{k=1}^{N} \|\hat{\mathbf{p}}_k - \mathbf{p}_k^{\mathrm{gt}}\|^2$.}
 \end{table}
 
-The low RMSE (0.210 m) and small standard deviation (0.059 m) indicate that our implementation achieves high-precision and stable estimation even in geometrically degenerate indoor environments. The maximum error (0.364 m) occurs during a rapid turn near a glass wall (where LiDAR features are scarce), confirming that feature degradation remains a fundamental challenge—though our tightly-coupled IEKF framework effectively contains the drift.
+The low RMSE (Root Mean Square Error) and small standard deviation indicate that our implementation achieves high-precision and stable estimation. Even when dynamic obstacles suddenly appear (Bag 2, around 140 s), the pose estimation remains accurate due to sufficient features. The maximum error occurs near a glass wall (Bag 1) or during a rapid turn (Bag 2), where LiDAR features are scarce, confirming that feature degradation remains a fundamental challenge—though our tightly-coupled IEKF framework effectively contains the drift.
 
-\noindent\textbf{p.s.} SSE denotes the Sum of Squared Errors, i.e., $\mathrm{SSE} = \sum_{k=1}^{N} \|\hat{\mathbf{p}}_k - \mathbf{p}_k^{\mathrm{gt}}\|^2$.
+The variation of error with time is shown in Fig. \ref{table:error_map_1} and \ref{table:error_map_4}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\textwidth]{media/outdoor1_result.pdf}
+    \includegraphics[width=0.45\textwidth]{media/outdoor1_map.pdf}
+    \caption{Variation of error (Bag 1).}
+    \label{table:error_map_1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\textwidth]{media/outdoor4_result.pdf}
+    \includegraphics[width=0.45\textwidth]{media/outdoor4_map.pdf}
+    \caption{Variation of error (Bag 2).}
+    \label{table:error_map_4}
+\end{figure}
 
 \subsection{Computational Efficiency of Kalman Gain Formulations}
 \label{subsec:efficiency}
 
-Figure~\ref{fig:time_comparison} and Table~\ref{tab:time_comparison} compare the processing latency per LiDAR scan using the two Kalman gain formulations.
+Fig.~\ref{fig:time_comparison} and Table~\ref{tab:time_comparison} compare the processing latency per LiDAR scan using the two Kalman gain formulations.
 
 \begin{figure}[ht]
     \centering
@@ -82,3 +87,17 @@ Figure~\ref{fig:time_comparison} and Table~\ref{tab:time_comparison} compare the
 \end{table}
 
 The results are striking: the Woodbury-optimized formulation reduces average processing time by over \textbf{99.8\%}—from 305 ms to just 0.4 ms per scan in the indoor sequence. This dramatic improvement enables real-time operation at 50 Hz (LiDAR rate), whereas the conventional method fails to keep up, often dropping scans. In Bag 1, the old formula could only process the first $\sim$30\% of the trajectory before latency accumulated beyond the scan interval. In Bag 2 (sparser features, smaller $m$), it barely completed the sequence but with significant delay. This validates that the computational bottleneck of tight LiDAR-inertial fusion lies in the Kalman gain computation, and the proposed reformulation is essential for practical deployment.
+
+\subsection{Mapping and Loop Closure Accuracy Evaluation in Degraded Environments}
+\label{subsec:loop}
+
+In this section, we test FAST-LIO in Bag 3, which contains several long straight corridors, and the constructed map is shown in Fig. \ref{fig:map_corridor}. The loop closure error is $\begin{bmatrix}
+    0.556 & 0.001 & -0.539
+\end{bmatrix}$ (m). Thanks to the tightly-coupled strategy, IMU measurements effectively assist in correcting LiDAR degradation, enabling reliable mapping even in challenging, feature-repetitive corridor settings and achieving high loop closure accuracy.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{media/corridor_map.png}
+    \caption{Map obtained by FAST-LIO.}
+    \label{fig:map_corridor}
+\end{figure}
